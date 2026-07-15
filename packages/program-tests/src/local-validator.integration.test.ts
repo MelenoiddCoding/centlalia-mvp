@@ -318,7 +318,8 @@ test('local validator completes purchase and exactly-once check-in', async () =>
   try {
     await sendAndConfirm(duplicate.transaction, {
       commitment: 'confirmed',
-      skipPreflight: false,
+      // Confirmation exposes InstructionError.Custom(6036); preflight wraps it as an RPC error.
+      skipPreflight: true,
     });
   } catch (error) {
     duplicateError = error;
