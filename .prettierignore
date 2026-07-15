@@ -1,0 +1,11 @@
+.next
+.playwright-cli
+coverage
+dist
+output
+playwright-report
+test-results
+target
+test-ledger
+*.tsbuildinfo
+pnpm-lock.yaml

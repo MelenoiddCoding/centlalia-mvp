@@ -1,0 +1,2040 @@
+{
+  "address": "6KVngKJVYYbqfeXxzXdnaZzmKwo58iin8LmiMyZjgpbu",
+  "metadata": {
+    "name": "centlalia_ticketing",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Centlalia verifiable event ticketing program"
+  },
+  "instructions": [
+    {
+      "name": "add_tier",
+      "discriminator": [92, 225, 133, 110, 149, 39, 185, 4],
+      "accounts": [
+        {
+          "name": "organizer",
+          "writable": true,
+          "signer": true,
+          "relations": ["event"]
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event",
+          "writable": true
+        },
+        {
+          "name": "tier",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [116, 105, 101, 114]
+              },
+              {
+                "kind": "account",
+                "path": "event"
+              },
+              {
+                "kind": "arg",
+                "path": "tier_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "tier_id",
+          "type": "u16"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "price_lamports",
+          "type": "u64"
+        },
+        {
+          "name": "supply",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "authorize_staff",
+      "discriminator": [58, 0, 175, 253, 33, 232, 2, 31],
+      "accounts": [
+        {
+          "name": "organizer",
+          "writable": true,
+          "signer": true,
+          "relations": ["event"]
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event"
+        },
+        {
+          "name": "staff"
+        },
+        {
+          "name": "staff_authorization",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [115, 116, 97, 102, 102]
+              },
+              {
+                "kind": "account",
+                "path": "event"
+              },
+              {
+                "kind": "account",
+                "path": "staff"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "buy_resale",
+      "discriminator": [71, 230, 159, 123, 90, 231, 111, 104],
+      "accounts": [
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event"
+        },
+        {
+          "name": "ticket_record",
+          "writable": true
+        },
+        {
+          "name": "listing",
+          "writable": true
+        },
+        {
+          "name": "seller",
+          "writable": true
+        },
+        {
+          "name": "organizer",
+          "writable": true,
+          "relations": ["event"]
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "managed_asset",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [109, 97, 110, 97, 103, 101, 100, 45, 97, 115, 115, 101, 116]
+              },
+              {
+                "kind": "account",
+                "path": "ticket_record"
+              }
+            ]
+          }
+        },
+        {
+          "name": "asset_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121]
+              },
+              {
+                "kind": "account",
+                "path": "platform_config"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel_check_in",
+      "discriminator": [90, 228, 52, 216, 156, 213, 27, 20],
+      "accounts": [
+        {
+          "name": "holder",
+          "signer": true
+        },
+        {
+          "name": "ticket_record",
+          "writable": true
+        },
+        {
+          "name": "check_in_intent",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel_event",
+      "discriminator": [55, 143, 36, 45, 59, 241, 89, 119],
+      "accounts": [
+        {
+          "name": "organizer",
+          "signer": true,
+          "relations": ["event"]
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel_listing",
+      "discriminator": [41, 183, 50, 232, 230, 233, 157, 70],
+      "accounts": [
+        {
+          "name": "seller",
+          "signer": true
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "ticket_record",
+          "writable": true
+        },
+        {
+          "name": "listing",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "close_event",
+      "discriminator": [117, 114, 193, 54, 49, 25, 75, 194],
+      "accounts": [
+        {
+          "name": "organizer",
+          "signer": true,
+          "relations": ["event"]
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "consume_check_in",
+      "discriminator": [86, 147, 234, 154, 215, 142, 88, 186],
+      "accounts": [
+        {
+          "name": "staff",
+          "signer": true
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event"
+        },
+        {
+          "name": "ticket_record",
+          "writable": true
+        },
+        {
+          "name": "managed_asset",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [109, 97, 110, 97, 103, 101, 100, 45, 97, 115, 115, 101, 116]
+              },
+              {
+                "kind": "account",
+                "path": "ticket_record"
+              }
+            ]
+          }
+        },
+        {
+          "name": "asset_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121]
+              },
+              {
+                "kind": "account",
+                "path": "platform_config"
+              }
+            ]
+          }
+        },
+        {
+          "name": "staff_authorization",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [115, 116, 97, 102, 102]
+              },
+              {
+                "kind": "account",
+                "path": "event"
+              },
+              {
+                "kind": "account",
+                "path": "staff"
+              }
+            ]
+          }
+        },
+        {
+          "name": "check_in_intent",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_event",
+      "discriminator": [49, 219, 29, 203, 22, 98, 100, 87],
+      "accounts": [
+        {
+          "name": "organizer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [101, 118, 101, 110, 116]
+              },
+              {
+                "kind": "account",
+                "path": "organizer"
+              },
+              {
+                "kind": "arg",
+                "path": "event_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "event_id",
+          "type": "u64"
+        },
+        {
+          "name": "details",
+          "type": {
+            "defined": {
+              "name": "EventDetails"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "expire_check_in",
+      "discriminator": [65, 135, 242, 109, 30, 73, 85, 6],
+      "accounts": [
+        {
+          "name": "keeper",
+          "signer": true
+        },
+        {
+          "name": "ticket_record",
+          "writable": true
+        },
+        {
+          "name": "check_in_intent",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "gift_ticket",
+      "discriminator": [150, 80, 29, 171, 14, 135, 247, 129],
+      "accounts": [
+        {
+          "name": "current_owner",
+          "signer": true
+        },
+        {
+          "name": "recipient"
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event"
+        },
+        {
+          "name": "ticket_record",
+          "writable": true
+        },
+        {
+          "name": "managed_asset",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [109, 97, 110, 97, 103, 101, 100, 45, 97, 115, 115, 101, 116]
+              },
+              {
+                "kind": "account",
+                "path": "ticket_record"
+              }
+            ]
+          }
+        },
+        {
+          "name": "asset_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121]
+              },
+              {
+                "kind": "account",
+                "path": "platform_config"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_platform",
+      "discriminator": [119, 201, 101, 45, 75, 122, 89, 3],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "platform_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "asset_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121]
+              },
+              {
+                "kind": "account",
+                "path": "platform_config"
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury"
+        },
+        {
+          "name": "program",
+          "address": "6KVngKJVYYbqfeXxzXdnaZzmKwo58iin8LmiMyZjgpbu"
+        },
+        {
+          "name": "program_data"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "platform_fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "asset_standard",
+          "type": {
+            "defined": {
+              "name": "AssetStandard"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "list_ticket",
+      "discriminator": [11, 213, 240, 45, 246, 35, 44, 162],
+      "accounts": [
+        {
+          "name": "seller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event"
+        },
+        {
+          "name": "ticket_record",
+          "writable": true
+        },
+        {
+          "name": "managed_asset",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [109, 97, 110, 97, 103, 101, 100, 45, 97, 115, 115, 101, 116]
+              },
+              {
+                "kind": "account",
+                "path": "ticket_record"
+              }
+            ]
+          }
+        },
+        {
+          "name": "asset_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121]
+              },
+              {
+                "kind": "account",
+                "path": "platform_config"
+              }
+            ]
+          }
+        },
+        {
+          "name": "listing",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [108, 105, 115, 116, 105, 110, 103]
+              },
+              {
+                "kind": "account",
+                "path": "ticket_record"
+              },
+              {
+                "kind": "arg",
+                "path": "listing_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "listing_id",
+          "type": "u32"
+        },
+        {
+          "name": "price_lamports",
+          "type": "u64"
+        },
+        {
+          "name": "expires_at",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "present_check_in",
+      "discriminator": [26, 31, 84, 165, 124, 127, 126, 218],
+      "accounts": [
+        {
+          "name": "holder",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event"
+        },
+        {
+          "name": "ticket_record",
+          "writable": true
+        },
+        {
+          "name": "managed_asset",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [109, 97, 110, 97, 103, 101, 100, 45, 97, 115, 115, 101, 116]
+              },
+              {
+                "kind": "account",
+                "path": "ticket_record"
+              }
+            ]
+          }
+        },
+        {
+          "name": "asset_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121]
+              },
+              {
+                "kind": "account",
+                "path": "platform_config"
+              }
+            ]
+          }
+        },
+        {
+          "name": "check_in_intent",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [99, 104, 101, 99, 107, 45, 105, 110, 45, 105, 110, 116, 101, 110, 116]
+              },
+              {
+                "kind": "account",
+                "path": "ticket_record"
+              },
+              {
+                "kind": "arg",
+                "path": "intent_nonce"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "intent_nonce",
+          "type": "u64"
+        },
+        {
+          "name": "expires_at",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "primary_purchase",
+      "discriminator": [81, 231, 187, 235, 87, 209, 43, 86],
+      "accounts": [
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event",
+          "writable": true
+        },
+        {
+          "name": "tier",
+          "writable": true
+        },
+        {
+          "name": "organizer",
+          "writable": true,
+          "relations": ["event"]
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "ticket_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [116, 105, 99, 107, 101, 116]
+              },
+              {
+                "kind": "account",
+                "path": "event"
+              },
+              {
+                "kind": "arg",
+                "path": "ticket_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "managed_asset",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [109, 97, 110, 97, 103, 101, 100, 45, 97, 115, 115, 101, 116]
+              },
+              {
+                "kind": "account",
+                "path": "ticket_record"
+              }
+            ]
+          }
+        },
+        {
+          "name": "asset_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121]
+              },
+              {
+                "kind": "account",
+                "path": "platform_config"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "ticket_id",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "publish_event",
+      "discriminator": [66, 121, 175, 133, 20, 2, 221, 42],
+      "accounts": [
+        {
+          "name": "organizer",
+          "signer": true,
+          "relations": ["event"]
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "revoke_staff",
+      "discriminator": [45, 222, 187, 197, 113, 90, 15, 171],
+      "accounts": [
+        {
+          "name": "organizer",
+          "signer": true,
+          "relations": ["event"]
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event"
+        },
+        {
+          "name": "staff"
+        },
+        {
+          "name": "staff_authorization",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [115, 116, 97, 102, 102]
+              },
+              {
+                "kind": "account",
+                "path": "event"
+              },
+              {
+                "kind": "account",
+                "path": "staff"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "update_event",
+      "discriminator": [70, 108, 211, 125, 171, 176, 25, 217],
+      "accounts": [
+        {
+          "name": "organizer",
+          "signer": true,
+          "relations": ["event"]
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "details",
+          "type": {
+            "defined": {
+              "name": "EventDetails"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "update_platform",
+      "discriminator": [46, 78, 138, 189, 47, 163, 120, 85],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": ["platform_config"]
+        },
+        {
+          "name": "platform_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury"
+        }
+      ],
+      "args": [
+        {
+          "name": "platform_fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "update_tier",
+      "discriminator": [22, 250, 234, 251, 201, 246, 98, 116],
+      "accounts": [
+        {
+          "name": "organizer",
+          "signer": true,
+          "relations": ["event"]
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event",
+          "writable": true
+        },
+        {
+          "name": "tier",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "price_lamports",
+          "type": "u64"
+        },
+        {
+          "name": "supply",
+          "type": "u32"
+        },
+        {
+          "name": "active",
+          "type": "bool"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "CheckInIntent",
+      "discriminator": [214, 175, 74, 108, 147, 62, 201, 63]
+    },
+    {
+      "name": "Event",
+      "discriminator": [125, 192, 125, 158, 9, 115, 152, 233]
+    },
+    {
+      "name": "Listing",
+      "discriminator": [218, 32, 50, 73, 43, 134, 26, 58]
+    },
+    {
+      "name": "ManagedAsset",
+      "discriminator": [189, 252, 111, 59, 93, 126, 178, 39]
+    },
+    {
+      "name": "PlatformConfig",
+      "discriminator": [160, 78, 128, 0, 248, 83, 230, 160]
+    },
+    {
+      "name": "StaffAuthorization",
+      "discriminator": [72, 133, 175, 176, 215, 153, 218, 236]
+    },
+    {
+      "name": "TicketRecord",
+      "discriminator": [37, 215, 102, 48, 114, 66, 21, 87]
+    },
+    {
+      "name": "Tier",
+      "discriminator": [18, 149, 18, 34, 50, 201, 207, 55]
+    }
+  ],
+  "events": [
+    {
+      "name": "CheckInConsumed",
+      "discriminator": [11, 132, 125, 75, 33, 243, 1, 68]
+    },
+    {
+      "name": "PrimaryPurchaseRecorded",
+      "discriminator": [67, 49, 19, 1, 247, 9, 209, 145]
+    },
+    {
+      "name": "TicketOwnershipTransferred",
+      "discriminator": [79, 142, 240, 106, 86, 159, 155, 130]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "PlatformPaused",
+      "msg": "The platform is paused"
+    },
+    {
+      "code": 6001,
+      "name": "UnsupportedAssetStandard",
+      "msg": "The requested asset standard does not yet have a verified CPI adapter"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidAsset",
+      "msg": "The supplied account is not the canonical asset for this ticket"
+    },
+    {
+      "code": 6003,
+      "name": "AssetOwnerMismatch",
+      "msg": "The canonical asset owner and ticket owner differ"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidAssetAuthority",
+      "msg": "The canonical asset authority is invalid"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidBasisPoints",
+      "msg": "Basis points must be at most 10,000"
+    },
+    {
+      "code": 6006,
+      "name": "InvalidFeeConfiguration",
+      "msg": "Platform fee and organizer royalty exceed 100%"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidEventTitle",
+      "msg": "Event title is empty or too long"
+    },
+    {
+      "code": 6008,
+      "name": "InvalidMetadataUri",
+      "msg": "Event metadata URI is too long"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidEventWindows",
+      "msg": "Event time windows are invalid"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidEventState",
+      "msg": "The event is not in the required state"
+    },
+    {
+      "code": 6011,
+      "name": "EventHasNoTiers",
+      "msg": "The event must contain at least one tier before publication"
+    },
+    {
+      "code": 6012,
+      "name": "SalesClosed",
+      "msg": "The event sales window is closed"
+    },
+    {
+      "code": 6013,
+      "name": "CheckInClosed",
+      "msg": "The event check-in window is closed"
+    },
+    {
+      "code": 6014,
+      "name": "TransferClosed",
+      "msg": "The event transfer window is closed"
+    },
+    {
+      "code": 6015,
+      "name": "EventNotEnded",
+      "msg": "The event has not ended"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidTierName",
+      "msg": "Tier name is empty or too long"
+    },
+    {
+      "code": 6017,
+      "name": "InvalidTierSupply",
+      "msg": "Tier supply must be greater than zero"
+    },
+    {
+      "code": 6018,
+      "name": "SupplyBelowSales",
+      "msg": "Tier supply cannot be reduced below sold inventory"
+    },
+    {
+      "code": 6019,
+      "name": "TierInactive",
+      "msg": "The tier is inactive"
+    },
+    {
+      "code": 6020,
+      "name": "TierSoldOut",
+      "msg": "The tier is sold out"
+    },
+    {
+      "code": 6021,
+      "name": "InvalidRelationship",
+      "msg": "The event, tier, ticket, listing, or intent relationship is invalid"
+    },
+    {
+      "code": 6022,
+      "name": "InvalidSequence",
+      "msg": "The supplied sequence number is not the next expected value"
+    },
+    {
+      "code": 6023,
+      "name": "TicketNotActive",
+      "msg": "The ticket is not active"
+    },
+    {
+      "code": 6024,
+      "name": "TicketAlreadyUsed",
+      "msg": "The ticket has already been used"
+    },
+    {
+      "code": 6025,
+      "name": "NotTicketOwner",
+      "msg": "The signer does not own the ticket"
+    },
+    {
+      "code": 6026,
+      "name": "SameOwner",
+      "msg": "A ticket cannot be transferred to its current owner"
+    },
+    {
+      "code": 6027,
+      "name": "FreeTicketResale",
+      "msg": "Free tickets cannot be listed for paid resale"
+    },
+    {
+      "code": 6028,
+      "name": "InvalidResalePrice",
+      "msg": "The resale price is zero or exceeds the event markup limit"
+    },
+    {
+      "code": 6029,
+      "name": "InvalidListingExpiry",
+      "msg": "The listing expiry is invalid"
+    },
+    {
+      "code": 6030,
+      "name": "ListingNotActive",
+      "msg": "The listing is not active"
+    },
+    {
+      "code": 6031,
+      "name": "ListingExpired",
+      "msg": "The listing has expired"
+    },
+    {
+      "code": 6032,
+      "name": "SellerCannotBuy",
+      "msg": "The buyer cannot also be the seller"
+    },
+    {
+      "code": 6033,
+      "name": "StaffAlreadyAuthorized",
+      "msg": "The staff authorization is already active"
+    },
+    {
+      "code": 6034,
+      "name": "StaffNotAuthorized",
+      "msg": "The staff authorization is not active"
+    },
+    {
+      "code": 6035,
+      "name": "InvalidIntentExpiry",
+      "msg": "The check-in intent expiry is outside the allowed range"
+    },
+    {
+      "code": 6036,
+      "name": "IntentNotPending",
+      "msg": "The check-in intent is not pending"
+    },
+    {
+      "code": 6037,
+      "name": "IntentExpired",
+      "msg": "The check-in intent has expired"
+    },
+    {
+      "code": 6038,
+      "name": "IntentNotExpired",
+      "msg": "The check-in intent has not expired"
+    },
+    {
+      "code": 6039,
+      "name": "ArithmeticOverflow",
+      "msg": "Arithmetic overflow"
+    },
+    {
+      "code": 6040,
+      "name": "EventHasTickets",
+      "msg": "A published event with issued tickets requires a refund policy before cancellation"
+    }
+  ],
+  "types": [
+    {
+      "name": "AssetStandard",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Managed"
+          },
+          {
+            "name": "BubblegumV2"
+          },
+          {
+            "name": "MplCore"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CheckInConsumed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "event",
+            "type": "pubkey"
+          },
+          {
+            "name": "ticket",
+            "type": "pubkey"
+          },
+          {
+            "name": "holder",
+            "type": "pubkey"
+          },
+          {
+            "name": "staff",
+            "type": "pubkey"
+          },
+          {
+            "name": "consumed_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CheckInIntent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ticket",
+            "type": "pubkey"
+          },
+          {
+            "name": "event",
+            "type": "pubkey"
+          },
+          {
+            "name": "holder",
+            "type": "pubkey"
+          },
+          {
+            "name": "nonce",
+            "type": "u64"
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "CheckInIntentStatus"
+              }
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "consumed_at",
+            "type": {
+              "option": "i64"
+            }
+          },
+          {
+            "name": "staff",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CheckInIntentStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Pending"
+          },
+          {
+            "name": "Cancelled"
+          },
+          {
+            "name": "Expired"
+          },
+          {
+            "name": "Consumed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Event",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "organizer",
+            "type": "pubkey"
+          },
+          {
+            "name": "platform_treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "event_id",
+            "type": "u64"
+          },
+          {
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "name": "metadata_uri",
+            "type": "string"
+          },
+          {
+            "name": "sales_start_at",
+            "type": "i64"
+          },
+          {
+            "name": "sales_end_at",
+            "type": "i64"
+          },
+          {
+            "name": "starts_at",
+            "type": "i64"
+          },
+          {
+            "name": "ends_at",
+            "type": "i64"
+          },
+          {
+            "name": "check_in_start_at",
+            "type": "i64"
+          },
+          {
+            "name": "check_in_end_at",
+            "type": "i64"
+          },
+          {
+            "name": "max_resale_markup_bps",
+            "type": "u16"
+          },
+          {
+            "name": "organizer_royalty_bps",
+            "type": "u16"
+          },
+          {
+            "name": "platform_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "resale_enabled",
+            "type": "bool"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "EventStatus"
+              }
+            }
+          },
+          {
+            "name": "next_tier_id",
+            "type": "u16"
+          },
+          {
+            "name": "next_ticket_id",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EventDetails",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "name": "metadata_uri",
+            "type": "string"
+          },
+          {
+            "name": "sales_start_at",
+            "type": "i64"
+          },
+          {
+            "name": "sales_end_at",
+            "type": "i64"
+          },
+          {
+            "name": "starts_at",
+            "type": "i64"
+          },
+          {
+            "name": "ends_at",
+            "type": "i64"
+          },
+          {
+            "name": "check_in_start_at",
+            "type": "i64"
+          },
+          {
+            "name": "check_in_end_at",
+            "type": "i64"
+          },
+          {
+            "name": "max_resale_markup_bps",
+            "type": "u16"
+          },
+          {
+            "name": "organizer_royalty_bps",
+            "type": "u16"
+          },
+          {
+            "name": "resale_enabled",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EventStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Draft"
+          },
+          {
+            "name": "Published"
+          },
+          {
+            "name": "Cancelled"
+          },
+          {
+            "name": "Closed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Listing",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ticket",
+            "type": "pubkey"
+          },
+          {
+            "name": "event",
+            "type": "pubkey"
+          },
+          {
+            "name": "seller",
+            "type": "pubkey"
+          },
+          {
+            "name": "listing_id",
+            "type": "u32"
+          },
+          {
+            "name": "price_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "ListingStatus"
+              }
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "expires_at",
+            "type": {
+              "option": "i64"
+            }
+          },
+          {
+            "name": "buyer",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ListingStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Cancelled"
+          },
+          {
+            "name": "Filled"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ManagedAsset",
+      "docs": [
+        "Canonical MVP asset ownership record.",
+        "",
+        "Bubblegum/Core tickets must not use this account: they require a CPI adapter",
+        "that proves the external asset transfer before `TicketRecord.owner` changes."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "ticket",
+            "type": "pubkey"
+          },
+          {
+            "name": "standard",
+            "type": {
+              "defined": {
+                "name": "AssetStandard"
+              }
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlatformConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset_standard",
+            "type": {
+              "defined": {
+                "name": "AssetStandard"
+              }
+            }
+          },
+          {
+            "name": "platform_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "asset_authority_bump",
+            "type": "u8"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "version",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PrimaryPurchaseRecorded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "event",
+            "type": "pubkey"
+          },
+          {
+            "name": "ticket",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "buyer",
+            "type": "pubkey"
+          },
+          {
+            "name": "price_lamports",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StaffAuthorization",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "event",
+            "type": "pubkey"
+          },
+          {
+            "name": "staff",
+            "type": "pubkey"
+          },
+          {
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "name": "authorized_at",
+            "type": "i64"
+          },
+          {
+            "name": "revoked_at",
+            "type": {
+              "option": "i64"
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TicketOwnershipTransferred",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ticket",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "previous_owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "new_owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "via_resale",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TicketRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "event",
+            "type": "pubkey"
+          },
+          {
+            "name": "tier",
+            "type": "pubkey"
+          },
+          {
+            "name": "serial",
+            "type": "u64"
+          },
+          {
+            "name": "asset_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "asset_standard",
+            "type": {
+              "defined": {
+                "name": "AssetStandard"
+              }
+            }
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "original_price_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "TicketStatus"
+              }
+            }
+          },
+          {
+            "name": "transfer_count",
+            "type": "u32"
+          },
+          {
+            "name": "used_at",
+            "type": {
+              "option": "i64"
+            }
+          },
+          {
+            "name": "used_by",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "next_listing_id",
+            "type": "u32"
+          },
+          {
+            "name": "next_intent_nonce",
+            "type": "u64"
+          },
+          {
+            "name": "active_intent",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TicketStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Listed"
+          },
+          {
+            "name": "Used"
+          },
+          {
+            "name": "Cancelled"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Tier",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "event",
+            "type": "pubkey"
+          },
+          {
+            "name": "tier_id",
+            "type": "u16"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "price_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "supply",
+            "type": "u32"
+          },
+          {
+            "name": "sold",
+            "type": "u32"
+          },
+          {
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}

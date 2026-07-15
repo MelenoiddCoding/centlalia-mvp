@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.13.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm secrets:check
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm --filter @centlalia/web exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+
+  program:
+    runs-on: ubuntu-latest
+    env:
+      HAS_PROGRAM_KEYPAIR: ${{ secrets.PROGRAM_KEYPAIR_JSON != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.13.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@1.91.0
+        with:
+          components: clippy,rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @centlalia/program-tests check:integration
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace
+      - name: Install Agave
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSfL https://release.anza.xyz/v4.1.2/install | sh
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      - name: Install Anchor CLI
+        run: cargo install anchor-cli --version 1.1.2 --locked
+      - name: Prepare provider and program keys
+        if: env.HAS_PROGRAM_KEYPAIR == 'true'
+        env:
+          PROGRAM_KEYPAIR_JSON: ${{ secrets.PROGRAM_KEYPAIR_JSON }}
+        run: |
+          mkdir -p "$HOME/.config/solana" target/deploy
+          solana-keygen new --no-bip39-passphrase --silent --force --outfile "$HOME/.config/solana/id.json"
+          printf '%s' "$PROGRAM_KEYPAIR_JSON" > target/deploy/centlalia_ticketing-keypair.json
+          expected="6KVngKJVYYbqfeXxzXdnaZzmKwo58iin8LmiMyZjgpbu"
+          actual="$(solana-keygen pubkey target/deploy/centlalia_ticketing-keypair.json)"
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::PROGRAM_KEYPAIR_JSON resolves to $actual; expected $expected"
+            exit 1
+          fi
+      - name: Require runtime credentials on main
+        if: github.event_name == 'push' && env.HAS_PROGRAM_KEYPAIR != 'true'
+        run: |
+          echo "PROGRAM_KEYPAIR_JSON is required for main runtime integration."
+          exit 1
+      - name: Build SBF and IDL
+        run: anchor build --ignore-keys
+      - name: Run local-validator integration
+        if: env.HAS_PROGRAM_KEYPAIR == 'true'
+        run: anchor test --skip-build --validator legacy
+      - name: Upload SBF and IDL
+        uses: actions/upload-artifact@v4
+        with:
+          name: centlalia-sbf
+          path: |
+            target/deploy/*.so
+            target/idl/*.json
+          if-no-files-found: error

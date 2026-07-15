@@ -1,0 +1,27 @@
+{
+  "name": "centlalia-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.13.1",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @centlalia/web dev",
+    "build": "pnpm -r --if-present build",
+    "client:generate": "pnpm --filter @centlalia/client generate:client",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "test:e2e": "pnpm --filter @centlalia/web test:e2e",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "secrets:check": "node scripts/check-secrets.mjs",
+    "anchor:build": "anchor build",
+    "anchor:test": "anchor test"
+  },
+  "devDependencies": {
+    "prettier": "3.6.2",
+    "typescript": "5.8.3"
+  }
+}
