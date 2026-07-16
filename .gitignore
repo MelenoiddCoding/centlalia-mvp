@@ -22,3 +22,5 @@ test-ledger/
 *.key
 **/id.json
 .DS_Store
+
+.vercel

@@ -93,6 +93,6 @@ Las métricas de usuarios permanecen pendientes hasta ejecutar sesiones reales. 
 
 ## Estado de publicación
 
-El código está publicado en [MelenoiddCoding/centlalia-mvp](https://github.com/MelenoiddCoding/centlalia-mvp) y la [CI de referencia](https://github.com/MelenoiddCoding/centlalia-mvp/actions/runs/29404988457) pasa web, Rust, build SBF y el recorrido multiwallet en validator. El programa `6KVngKJVYYbqfeXxzXdnaZzmKwo58iin8LmiMyZjgpbu` está desplegado e inicializado en devnet con fee de plataforma de 0%; Vercel y el envío desde la UI siguen pendientes. DAS es opcional mientras los tickets usen `ManagedAsset`. Ninguna credencial o keypair se guarda en Git.
+El código está publicado en [MelenoiddCoding/centlalia-mvp](https://github.com/MelenoiddCoding/centlalia-mvp) y la [CI de referencia](https://github.com/MelenoiddCoding/centlalia-mvp/actions/runs/29404988457) pasa web, Rust, build SBF y el recorrido multiwallet en validator. El programa `6KVngKJVYYbqfeXxzXdnaZzmKwo58iin8LmiMyZjgpbu` está desplegado e inicializado en devnet con fee de plataforma de 0%; la [web de producción](https://web-two-amber-35.vercel.app) confirma por RPC que el programa es ejecutable y que `PlatformConfig` existe. El envío desde la UI sigue pendiente. DAS es opcional mientras los tickets usen `ManagedAsset`. Ninguna credencial o keypair se guarda en Git.
 
 Consulta [SECURITY.md](SECURITY.md) antes de operar el programa. El software no ha sido auditado y no debe utilizarse en mainnet.
