@@ -2,7 +2,7 @@
 
 Estado: dictamen tecnico actualizado; validacion de usuarios pendiente
 
-Fecha de corte: 2026-07-15
+Fecha de corte: 2026-07-16
 
 Alcance: producto, negocio, arquitectura, seguridad, evidencia y alineacion con WayLearn
 
@@ -10,20 +10,20 @@ Alcance: producto, negocio, arquitectura, seguridad, evidencia y alineacion con 
 
 Centlalia tiene una tesis de producto coherente para la incubacion: demostrar que un ticket verificable, con reglas de circulacion y check-in de un solo uso, resuelve un problema concreto para comunidades Web3 y eventos Solana pequenos. La idea y el alcance documental son validos para continuar, pero el sistema **todavia no esta validado con usuarios ni listo para operacion real**.
 
-El prototipo anterior sirve como fuente de aprendizaje, no como base productiva. La implementación greenfield ya cierra en código host los riesgos principales de propiedad y check-in, pero todavía requiere runtime SBF/validator, despliegue devnet, frontend on-chain y evidencia de usuarios antes de considerarse un MVP validado.
+El prototipo anterior sirve como fuente de aprendizaje, no como base productiva. La implementación greenfield ya cierra los riesgos principales de propiedad y check-in, pasa runtime SBF/validator y está desplegada e inicializada en devnet. Todavía requiere integrar firma/envío en el frontend y obtener evidencia de usuarios antes de considerarse un MVP validado.
 
 Resultado por dimension:
 
-| Dimension               | Dictamen                        | Evidencia actual                                                 |
-| ----------------------- | ------------------------------- | ---------------------------------------------------------------- |
-| Problema y segmento     | Hipotesis enfocada              | Documentos previos y feedback de Discord; entrevistas pendientes |
-| Propuesta de valor      | Coherente, no confirmada        | Flujo definido; utilidad percibida pendiente                     |
-| Modelo de negocio       | Hipotesis razonable             | Piloto gestionado definido; disposicion de pago pendiente        |
-| Arquitectura greenfield | Implementada, runtime pendiente | Programa, IDL/Codama, web, harness y toolchain locales           |
-| Seguridad y propiedad   | Corregida para `ManagedAsset`   | Pruebas host pasan; SBF/devnet e integración externa pendientes  |
-| MVP funcional           | Demo reproducible               | Recorrido local completo; program account devnet ausente         |
-| Validacion WayLearn     | Parcial                         | Documentos existen; entregas externas, usuarios y MVP pendientes |
-| Fondeo                  | Fuera del objetivo inmediato    | El programa actualmente no cuenta con grant para sus proyectos   |
+| Dimension               | Dictamen                         | Evidencia actual                                                 |
+| ----------------------- | -------------------------------- | ---------------------------------------------------------------- |
+| Problema y segmento     | Hipotesis enfocada               | Documentos previos y feedback de Discord; entrevistas pendientes |
+| Propuesta de valor      | Coherente, no confirmada         | Flujo definido; utilidad percibida pendiente                     |
+| Modelo de negocio       | Hipotesis razonable              | Piloto gestionado definido; disposicion de pago pendiente        |
+| Arquitectura greenfield | Implementada, runtime verificado | Programa, IDL/Codama, web, SBF y harness reproducible            |
+| Seguridad y propiedad   | Corregida para `ManagedAsset`    | Unit, SBF y validator pasan; integración externa pendiente       |
+| MVP funcional           | Demo más backend devnet          | Programa inicializado; firma/envío desde UI todavía pendientes   |
+| Validacion WayLearn     | Parcial                          | Documentos existen; entregas externas, usuarios y MVP pendientes |
+| Fondeo                  | Fuera del objetivo inmediato     | El programa actualmente no cuenta con grant para sus proyectos   |
 
 ## Metodo de validacion
 
@@ -54,7 +54,7 @@ El prototipo permitia que staff presentara una public key como supuesto titular.
 
 Correccion obligatoria: el titular firma la creacion de un `CheckInIntent` corto; staff autorizado lo consume una sola vez. Deben validarse titular actual, evento, vigencia, ventana de acceso y estado no usado.
 
-Estado: protocolo implementado con firma del holder, intención de hasta cinco minutos, staff autorizado y consumo único. Las pruebas Rust y el harness TypeScript cubren el flujo; la ejecución local-validator en Linux/CI sigue pendiente.
+Estado: protocolo implementado con firma del holder, intención de hasta cinco minutos, staff autorizado y consumo único. Las pruebas Rust y el harness TypeScript cubren el flujo; la ejecución local-validator en Linux/CI pasa contra el SBF.
 
 #### V-03. Existio exposicion de una credencial en el repositorio historico
 
@@ -96,7 +96,7 @@ El flujo de mayor valor para la nueva tesis no tenia pruebas del caso feliz, dob
 
 Correccion: estos escenarios son bloqueantes en CI y en el E2E de devnet.
 
-Estado: 25 pruebas Rust cubren el dominio y fallos de check-in; el E2E de navegador cubre el rechazo demo y el harness local-validator exige `IntentNotPending (6036)`. Falta ejecutar ese harness contra el SBF en CI/devnet.
+Estado: 25 pruebas Rust cubren el dominio y fallos de check-in; el E2E de navegador cubre el rechazo demo y el harness local-validator exige `IntentNotPending (6036)`. La ejecución CI `29404988457` construyó el SBF y aprobó ese recorrido multiwallet.
 
 ### Medios
 
@@ -106,7 +106,7 @@ La documentacion, hooks de instalacion y nombres de variables de entorno no eran
 
 Correccion: devcontainer versionado, `.env.example`, scripts unificados y CI en cada pull request.
 
-Estado: workspace, lockfiles, devcontainer, variables, secret scan y CI están versionados; los checks locales pasan. La primera ejecución en GitHub todavía no existe.
+Estado: workspace, lockfiles, devcontainer, variables, secret scan y CI están versionados. La ejecución pública `29404988457` aprobó ambos jobs y publicó el artefacto `centlalia-sbf`.
 
 #### V-09. Faltaban operaciones necesarias para un ciclo operativo completo
 
@@ -131,7 +131,7 @@ WayLearn pide validar el problema, construir un MVP funcional conectado a Solana
 - pruebas con usuarios del segmento; 5 a 10 es una meta sugerida, no un mínimo oficial;
 - cambios de producto derivados de aprendizaje real;
 - flujo principal conectado entre frontend y programa Solana;
-- runtime automatizado SBF/devnet y demo on-chain reproducible;
+- transacciones devnet iniciadas desde la interfaz y demo on-chain reproducible;
 - evidencia del valor que agrega blockchain frente a una alternativa tradicional;
 - pitch, progreso y siguientes pasos sin presentar fondeo como garantizado.
 

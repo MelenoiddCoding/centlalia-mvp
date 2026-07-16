@@ -11,7 +11,7 @@ Este repositorio es la implementación canónica creada para Solana Latam Labs P
 - Staff: consumir una intención vigente y obtener un rechazo determinista ante el segundo uso.
 - Red: devnet y demos controladas. No hay dinero real, custodia, fiat ni mainnet; WayLearn actualmente no cuenta con un grant para los proyectos participantes.
 
-La aplicación incluye un **modo demo local** para recorrer el producto sin una wallet. Sus identificadores no son firmas de Solana y siempre se muestran como simulación. El panel real consulta el RPC, detecta Wallet Standard y usa builders Codama; firma y envío se bloquean mientras el program account no sea ejecutable. El espacio por roles permanece en modo demo hasta completar despliegue e integración on-chain.
+La aplicación incluye un **modo demo local** para recorrer el producto sin una wallet. Sus identificadores no son firmas de Solana y siempre se muestran como simulación. El panel real consulta el RPC, detecta Wallet Standard y usa builders Codama; el programa y `PlatformConfig` ya existen en devnet, pero la UI todavía no expone firma y envío. El espacio por roles permanece explícitamente en modo demo hasta completar esa integración y validarla con usuarios.
 
 ## Inicio rápido
 
@@ -54,7 +54,7 @@ anchor test
 | ---------------------------- | ----------- | ---------------------------------------------------------- |
 | `NEXT_PUBLIC_SOLANA_RPC_URL` | navegador   | RPC para enviar transacciones devnet                       |
 | `NEXT_PUBLIC_SOLANA_NETWORK` | navegador   | Debe permanecer en `devnet` durante incubación             |
-| `NEXT_PUBLIC_PROGRAM_ID`     | navegador   | ID sincronizado; no implica que la cuenta esté desplegada  |
+| `NEXT_PUBLIC_PROGRAM_ID`     | navegador   | Programa Centlalia desplegado en devnet                    |
 | `DAS_RPC_URL`                | servidor    | Endpoint con DAS; nunca debe llevar prefijo `NEXT_PUBLIC_` |
 
 `/api/das` actúa como proxy servidor con métodos permitidos, tamaño máximo, validación, timeout y rate limit defensivo. Configura cada variable por separado en Development, Preview y Production de Vercel, y aplica además límites de cuota en Vercel Firewall y en el proveedor DAS.
@@ -93,6 +93,6 @@ Las métricas de usuarios permanecen pendientes hasta ejecutar sesiones reales. 
 
 ## Estado de publicación
 
-El código puede publicarse en `MelenoiddCoding/centlalia-mvp` una vez autenticados GitHub CLI y Vercel. El despliegue on-chain requiere una wallet devnet de despliegue y SOL de faucet; DAS es opcional mientras los tickets usen `ManagedAsset`. Ninguna credencial o keypair se guarda en Git.
+El código está publicado en [MelenoiddCoding/centlalia-mvp](https://github.com/MelenoiddCoding/centlalia-mvp) y la [CI de referencia](https://github.com/MelenoiddCoding/centlalia-mvp/actions/runs/29404988457) pasa web, Rust, build SBF y el recorrido multiwallet en validator. El programa `6KVngKJVYYbqfeXxzXdnaZzmKwo58iin8LmiMyZjgpbu` está desplegado e inicializado en devnet con fee de plataforma de 0%; Vercel y el envío desde la UI siguen pendientes. DAS es opcional mientras los tickets usen `ManagedAsset`. Ninguna credencial o keypair se guarda en Git.
 
 Consulta [SECURITY.md](SECURITY.md) antes de operar el programa. El software no ha sido auditado y no debe utilizarse en mainnet.

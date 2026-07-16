@@ -2,7 +2,7 @@
 
 Estado: arquitectura objetivo con corte de implementación
 
-Fecha de corte: 2026-07-15
+Fecha de corte: 2026-07-16
 
 Red de incubacion: Solana devnet
 
@@ -11,8 +11,8 @@ Red de incubacion: Solana devnet
 - El programa Anchor implementa cuentas, autorizaciones, circulación, reventa y check-in exactly-once con un `ManagedAsset` interno; 25 pruebas Rust, Clippy y formato pasan.
 - `packages/client` contiene la demo determinista, el IDL, 52 módulos Codama generados, detección Wallet Standard y un adapter que construye ocho operaciones y serializa transacciones v0.
 - `apps/web` ejecuta el recorrido completo en modo demo explícito, protege el endpoint DAS y muestra un diagnóstico RPC/wallet real. El recorrido por roles todavía no envía instrucciones al programa.
-- El program ID `6KVngKJVYYbqfeXxzXdnaZzmKwo58iin8LmiMyZjgpbu` ya está sincronizado, pero no está desplegado en devnet.
-- Existe un harness compilado para validator con admin, organizador, asistente y staff; su ejecución SBF en Linux/CI y el despliegue devnet permanecen pendientes.
+- El program ID `6KVngKJVYYbqfeXxzXdnaZzmKwo58iin8LmiMyZjgpbu` está desplegado con loader upgradeable en devnet; `PlatformConfig` está inicializado con `ManagedAsset` y fee 0%.
+- El harness con admin, organizador, asistente y staff pasa contra el SBF en validator Linux dentro de la CI; verifica compra, presentación, consumo y rechazo duplicado `IntentNotPending (6036)`.
 - Bubblegum V2, MPL Core y DAS aplicado a tickets reales permanecen pendientes. No se consideran implementados por aparecer en la arquitectura objetivo.
 
 ## Principios
@@ -49,11 +49,11 @@ PDAs de dominio + ManagedAsset
 - `apps/web`: interfaz en español, responsive y separada por roles. Usa rutas de servidor solo cuando es necesario proteger DAS.
 - `programs/ticketing`: programa Anchor con cuentas, instrucciones, errores y eventos del dominio.
 - `packages/client`: tipos, demo, IDL, cliente Codama reproducible, adapter de transacciones v0 y bridge Wallet Standard.
-- `packages/program-tests` y `apps/web/e2e`: harness local-validator y recorridos de navegador en escritorio/móvil. La ejecución multiwallet SBF sigue pendiente de CI.
+- `packages/program-tests` y `apps/web/e2e`: harness local-validator multiwallet y recorridos de navegador en escritorio/móvil, ejecutados en CI.
 - `.devcontainer`: toolchain reproducible para Codespaces o Docker local.
 - `.github/workflows`: controles de formato, lint, tipos, pruebas y secretos.
 
-El `program_id` ya fue generado y sincronizado en `declare_id!`, `Anchor.toml` y el entorno de ejemplo. La existencia del ID no demuestra despliegue; debe verificarse como cuenta ejecutable en devnet antes de activar el gateway real.
+El `program_id` está sincronizado en `declare_id!`, `Anchor.toml` y el entorno de ejemplo. El 16 de julio de 2026 se verificó en devnet como cuenta ejecutable de 556,616 bytes, propiedad de `BPFLoaderUpgradeab1e11111111111111111111111`; esta evidencia habilita el adapter, pero no sustituye la integración de firma/envío en la UI.
 
 ## Stack objetivo
 
