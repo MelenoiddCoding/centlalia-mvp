@@ -8,6 +8,7 @@
 
 export * from './assetAuthority';
 export * from './checkInIntent';
+export * from './coreAsset';
 export * from './event';
 export * from './listing';
 export * from './managedAsset';

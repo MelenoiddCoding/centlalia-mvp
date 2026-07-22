@@ -11,7 +11,7 @@ Este repositorio es la implementación canónica creada para Solana Latam Labs P
 - Staff: consumir una intención vigente y obtener un rechazo determinista ante el segundo uso.
 - Red: devnet y demos controladas. No hay dinero real, custodia, fiat ni mainnet; WayLearn actualmente no cuenta con un grant para los proyectos participantes.
 
-La aplicación incluye un **modo demo local** para recorrer el producto sin una wallet. Sus identificadores no son firmas de Solana y siempre se muestran como simulación. El panel real consulta el RPC, detecta Wallet Standard y usa builders Codama; el programa y `PlatformConfig` ya existen en devnet, pero la UI todavía no expone firma y envío. El espacio por roles permanece explícitamente en modo demo hasta completar esa integración y validarla con usuarios.
+La aplicación separa dos recorridos. La **mesa demo local** permite explorar el producto sin wallet y nunca cuenta como evidencia on-chain. La **vertical verificable** conecta Wallet Standard, envía transacciones v0 y exige tres wallets distintas para emitir, comprar un activo MPL Core, presentar un intent, consumirlo y probar el rechazo del segundo uso. Cada paso enlaza sus cuentas y firmas en Explorer.
 
 ## Inicio rápido
 
@@ -72,7 +72,7 @@ docs/                     Dictamen, trazabilidad, validación y roadmap
 
 El programa separa tarifa de plataforma, regalía del organizador y límite de reventa. El check-in requiere una intención firmada y de vida corta; el staff autorizado la consume dentro de la ventana del evento y `used_at` impide replays.
 
-El programa implementado usa hoy un `ManagedAsset` canónico dentro del ledger de Centlalia: activo y `TicketRecord` cambian atómicamente y los estándares externos se rechazan. Bubblegum V2 y MPL Core siguen pendientes de una CPI real; el MVP actual no afirma interoperabilidad NFT ni consulta DAS sobre sus tickets.
+El programa conserva `ManagedAsset` para compatibilidad y pruebas, y añade una vertical MPL Core aditiva. `primary_purchase_core` crea el activo mediante CPI en la misma transacción que cobra y registra el ticket; un `PermanentFreezeDelegate` controlado por la autoridad PDA impide transferencias fuera de política. Presentación y consumo leen directamente owner y update authority del activo Core antes de cambiar el acceso.
 
 Regenera el cliente únicamente desde el IDL versionado:
 
@@ -83,6 +83,7 @@ pnpm client:generate
 ## Evidencia y programa
 
 - [Validación del sistema](docs/VALIDACION-SISTEMA.md)
+- [Evidencia de la vertical MPL Core](docs/EVIDENCIA-VERTICAL-CORE.md)
 - [Trazabilidad Discord y WayLearn](docs/TRAZABILIDAD.md)
 - [Arquitectura técnica](docs/ARQUITECTURA.md)
 - [Protocolo de validación](docs/PROTOCOLO-VALIDACION.md)
@@ -93,6 +94,6 @@ Las métricas de usuarios permanecen pendientes hasta ejecutar sesiones reales. 
 
 ## Estado de publicación
 
-El código está publicado en [MelenoiddCoding/centlalia-mvp](https://github.com/MelenoiddCoding/centlalia-mvp) y la [CI de referencia](https://github.com/MelenoiddCoding/centlalia-mvp/actions/runs/29404988457) pasa web, Rust, build SBF y el recorrido multiwallet en validator. El programa `6KVngKJVYYbqfeXxzXdnaZzmKwo58iin8LmiMyZjgpbu` está desplegado e inicializado en devnet con fee de plataforma de 0%; la [web de producción](https://web-two-amber-35.vercel.app) confirma por RPC que el programa es ejecutable y que `PlatformConfig` existe. El envío desde la UI sigue pendiente. DAS es opcional mientras los tickets usen `ManagedAsset`. Ninguna credencial o keypair se guarda en Git.
+El programa `6KVngKJVYYbqfeXxzXdnaZzmKwo58iin8LmiMyZjgpbu` y su `PlatformConfig` existen en devnet. El corte MPL Core de este repositorio compila en Rust nativo, pasa lint, tipos, pruebas unitarias y navegador; el build SBF, E2E con el programa Core oficial, upgrade devnet y primera evidencia pública deben pasar sus gates antes de declarar la vertical operativa. Ninguna credencial o keypair se guarda en Git.
 
 Consulta [SECURITY.md](SECURITY.md) antes de operar el programa. El software no ha sido auditado y no debe utilizarse en mainnet.

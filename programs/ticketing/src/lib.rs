@@ -33,6 +33,13 @@ pub mod centlalia_ticketing {
         instructions::update_platform(ctx, platform_fee_bps, paused)
     }
 
+    pub fn set_asset_standard(
+        ctx: Context<UpdatePlatform>,
+        asset_standard: AssetStandard,
+    ) -> Result<()> {
+        instructions::set_asset_standard(ctx, asset_standard)
+    }
+
     pub fn create_event(
         ctx: Context<CreateEvent>,
         event_id: u64,
@@ -89,6 +96,10 @@ pub mod centlalia_ticketing {
         instructions::primary_purchase(ctx, ticket_id)
     }
 
+    pub fn primary_purchase_core(ctx: Context<PrimaryPurchaseCore>, ticket_id: u64) -> Result<()> {
+        instructions::primary_purchase_core(ctx, ticket_id)
+    }
+
     pub fn gift_ticket(ctx: Context<GiftTicket>) -> Result<()> {
         instructions::gift_ticket(ctx)
     }
@@ -118,6 +129,14 @@ pub mod centlalia_ticketing {
         instructions::present_check_in(ctx, intent_nonce, expires_at)
     }
 
+    pub fn present_check_in_core(
+        ctx: Context<PresentCheckInCore>,
+        intent_nonce: u64,
+        expires_at: i64,
+    ) -> Result<()> {
+        instructions::present_check_in_core(ctx, intent_nonce, expires_at)
+    }
+
     pub fn cancel_check_in(ctx: Context<CancelCheckIn>) -> Result<()> {
         instructions::cancel_check_in(ctx)
     }
@@ -128,5 +147,9 @@ pub mod centlalia_ticketing {
 
     pub fn consume_check_in(ctx: Context<ConsumeCheckIn>) -> Result<()> {
         instructions::consume_check_in(ctx)
+    }
+
+    pub fn consume_check_in_core(ctx: Context<ConsumeCheckInCore>) -> Result<()> {
+        instructions::consume_check_in_core(ctx)
     }
 }

@@ -5,6 +5,7 @@ import { AttendeeSpace } from './spaces/attendee-space';
 import { OrganizerSpace } from './spaces/organizer-space';
 import { StaffSpace } from './spaces/staff-space';
 import { SolanaDiagnostic } from './solana-diagnostic';
+import { OnchainVertical } from './onchain-vertical';
 import { useGateway } from '@/providers/gateway-provider';
 import { clock } from '@/lib/format';
 
@@ -122,6 +123,7 @@ export function DemoWorkspace() {
         </nav>
 
         <main className="working-surface">
+          <OnchainVertical />
           {notice ? (
             <div
               className={`notice notice-${notice.kind}`}

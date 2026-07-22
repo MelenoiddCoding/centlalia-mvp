@@ -10,7 +10,7 @@ Alcance: producto, negocio, arquitectura, seguridad, evidencia y alineacion con 
 
 Centlalia tiene una tesis de producto coherente para la incubacion: demostrar que un ticket verificable, con reglas de circulacion y check-in de un solo uso, resuelve un problema concreto para comunidades Web3 y eventos Solana pequenos. La idea y el alcance documental son validos para continuar, pero el sistema **todavia no esta validado con usuarios ni listo para operacion real**.
 
-El prototipo anterior sirve como fuente de aprendizaje, no como base productiva. La implementación greenfield ya cierra los riesgos principales de propiedad y check-in, pasa runtime SBF/validator y está desplegada e inicializada en devnet. Todavía requiere integrar firma/envío en el frontend y obtener evidencia de usuarios antes de considerarse un MVP validado.
+El prototipo anterior sirve como fuente de aprendizaje, no como base productiva. La implementación greenfield añade ahora firma/envío en frontend y una vertical MPL Core por CPI. Al corte 2026-07-22, código, pruebas unitarias y navegador pasan; CI SBF, upgrade devnet, tres wallets y evidencia de usuarios siguen siendo gates obligatorios antes de considerarlo un MVP validado.
 
 Resultado por dimension:
 

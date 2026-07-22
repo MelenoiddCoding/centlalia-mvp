@@ -143,17 +143,17 @@ export function SolanaDiagnostic() {
           </div>
           <div>
             <dt>Builders Codama</dt>
-            <dd>8 operaciones</dd>
+            <dd>11 operaciones</dd>
           </div>
           <div>
             <dt>Firma y envío</dt>
-            <dd>No expuesto en esta UI</dd>
+            <dd>Expuesto en la vertical</dd>
           </div>
         </dl>
       </div>
       <p className="diagnostic-disclaimer">
-        Este panel no cambia el estado de la demostración. El cliente puede preparar transacciones,
-        pero el recorrido por roles no expone todavía acciones on-chain.
+        La consola superior envía transacciones reales. La mesa de roles permanece como simulación
+        local y no se considera evidencia on-chain.
       </p>
     </section>
   );

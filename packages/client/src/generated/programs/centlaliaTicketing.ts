@@ -67,16 +67,20 @@ import {
   getCancelEventInstructionAsync,
   getCancelListingInstructionAsync,
   getCloseEventInstructionAsync,
+  getConsumeCheckInCoreInstructionAsync,
   getConsumeCheckInInstructionAsync,
   getCreateEventInstructionAsync,
   getExpireCheckInInstruction,
   getGiftTicketInstructionAsync,
   getInitializePlatformInstructionAsync,
   getListTicketInstructionAsync,
+  getPresentCheckInCoreInstructionAsync,
   getPresentCheckInInstructionAsync,
+  getPrimaryPurchaseCoreInstructionAsync,
   getPrimaryPurchaseInstructionAsync,
   getPublishEventInstructionAsync,
   getRevokeStaffInstructionAsync,
+  getSetAssetStandardInstructionAsync,
   getUpdateEventInstructionAsync,
   getUpdatePlatformInstructionAsync,
   getUpdateTierInstructionAsync,
@@ -87,16 +91,20 @@ import {
   parseCancelEventInstruction,
   parseCancelListingInstruction,
   parseCloseEventInstruction,
+  parseConsumeCheckInCoreInstruction,
   parseConsumeCheckInInstruction,
   parseCreateEventInstruction,
   parseExpireCheckInInstruction,
   parseGiftTicketInstruction,
   parseInitializePlatformInstruction,
   parseListTicketInstruction,
+  parsePresentCheckInCoreInstruction,
   parsePresentCheckInInstruction,
+  parsePrimaryPurchaseCoreInstruction,
   parsePrimaryPurchaseInstruction,
   parsePublishEventInstruction,
   parseRevokeStaffInstruction,
+  parseSetAssetStandardInstruction,
   parseUpdateEventInstruction,
   parseUpdatePlatformInstruction,
   parseUpdateTierInstruction,
@@ -108,6 +116,7 @@ import {
   type CancelListingAsyncInput,
   type CloseEventAsyncInput,
   type ConsumeCheckInAsyncInput,
+  type ConsumeCheckInCoreAsyncInput,
   type CreateEventAsyncInput,
   type ExpireCheckInInput,
   type GiftTicketAsyncInput,
@@ -120,23 +129,30 @@ import {
   type ParsedCancelEventInstruction,
   type ParsedCancelListingInstruction,
   type ParsedCloseEventInstruction,
+  type ParsedConsumeCheckInCoreInstruction,
   type ParsedConsumeCheckInInstruction,
   type ParsedCreateEventInstruction,
   type ParsedExpireCheckInInstruction,
   type ParsedGiftTicketInstruction,
   type ParsedInitializePlatformInstruction,
   type ParsedListTicketInstruction,
+  type ParsedPresentCheckInCoreInstruction,
   type ParsedPresentCheckInInstruction,
+  type ParsedPrimaryPurchaseCoreInstruction,
   type ParsedPrimaryPurchaseInstruction,
   type ParsedPublishEventInstruction,
   type ParsedRevokeStaffInstruction,
+  type ParsedSetAssetStandardInstruction,
   type ParsedUpdateEventInstruction,
   type ParsedUpdatePlatformInstruction,
   type ParsedUpdateTierInstruction,
   type PresentCheckInAsyncInput,
+  type PresentCheckInCoreAsyncInput,
   type PrimaryPurchaseAsyncInput,
+  type PrimaryPurchaseCoreAsyncInput,
   type PublishEventAsyncInput,
   type RevokeStaffAsyncInput,
+  type SetAssetStandardAsyncInput,
   type UpdateEventAsyncInput,
   type UpdatePlatformAsyncInput,
   type UpdateTierAsyncInput,
@@ -144,6 +160,7 @@ import {
 import {
   findAssetAuthorityPda,
   findCheckInIntentPda,
+  findCoreAssetPda,
   findEventPda,
   findListingPda,
   findManagedAssetPda,
@@ -274,15 +291,19 @@ export enum CentlaliaTicketingInstruction {
   CancelListing,
   CloseEvent,
   ConsumeCheckIn,
+  ConsumeCheckInCore,
   CreateEvent,
   ExpireCheckIn,
   GiftTicket,
   InitializePlatform,
   ListTicket,
   PresentCheckIn,
+  PresentCheckInCore,
   PrimaryPurchase,
+  PrimaryPurchaseCore,
   PublishEvent,
   RevokeStaff,
+  SetAssetStandard,
   UpdateEvent,
   UpdatePlatform,
   UpdateTier,
@@ -384,6 +405,17 @@ export function identifyCentlaliaTicketingInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([201, 35, 45, 50, 209, 65, 161, 78]),
+      ),
+      0,
+    )
+  ) {
+    return CentlaliaTicketingInstruction.ConsumeCheckInCore;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([49, 219, 29, 203, 22, 98, 100, 87]),
       ),
       0,
@@ -450,12 +482,34 @@ export function identifyCentlaliaTicketingInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([60, 115, 205, 169, 119, 248, 7, 110]),
+      ),
+      0,
+    )
+  ) {
+    return CentlaliaTicketingInstruction.PresentCheckInCore;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([81, 231, 187, 235, 87, 209, 43, 86]),
       ),
       0,
     )
   ) {
     return CentlaliaTicketingInstruction.PrimaryPurchase;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([58, 175, 221, 83, 168, 159, 70, 236]),
+      ),
+      0,
+    )
+  ) {
+    return CentlaliaTicketingInstruction.PrimaryPurchaseCore;
   }
   if (
     containsBytes(
@@ -478,6 +532,17 @@ export function identifyCentlaliaTicketingInstruction(
     )
   ) {
     return CentlaliaTicketingInstruction.RevokeStaff;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([44, 210, 136, 166, 106, 18, 224, 43]),
+      ),
+      0,
+    )
+  ) {
+    return CentlaliaTicketingInstruction.SetAssetStandard;
   }
   if (
     containsBytes(
@@ -546,6 +611,9 @@ export type ParsedCentlaliaTicketingInstruction<
       instructionType: CentlaliaTicketingInstruction.ConsumeCheckIn;
     } & ParsedConsumeCheckInInstruction<TProgram>)
   | ({
+      instructionType: CentlaliaTicketingInstruction.ConsumeCheckInCore;
+    } & ParsedConsumeCheckInCoreInstruction<TProgram>)
+  | ({
       instructionType: CentlaliaTicketingInstruction.CreateEvent;
     } & ParsedCreateEventInstruction<TProgram>)
   | ({
@@ -564,14 +632,23 @@ export type ParsedCentlaliaTicketingInstruction<
       instructionType: CentlaliaTicketingInstruction.PresentCheckIn;
     } & ParsedPresentCheckInInstruction<TProgram>)
   | ({
+      instructionType: CentlaliaTicketingInstruction.PresentCheckInCore;
+    } & ParsedPresentCheckInCoreInstruction<TProgram>)
+  | ({
       instructionType: CentlaliaTicketingInstruction.PrimaryPurchase;
     } & ParsedPrimaryPurchaseInstruction<TProgram>)
+  | ({
+      instructionType: CentlaliaTicketingInstruction.PrimaryPurchaseCore;
+    } & ParsedPrimaryPurchaseCoreInstruction<TProgram>)
   | ({
       instructionType: CentlaliaTicketingInstruction.PublishEvent;
     } & ParsedPublishEventInstruction<TProgram>)
   | ({
       instructionType: CentlaliaTicketingInstruction.RevokeStaff;
     } & ParsedRevokeStaffInstruction<TProgram>)
+  | ({
+      instructionType: CentlaliaTicketingInstruction.SetAssetStandard;
+    } & ParsedSetAssetStandardInstruction<TProgram>)
   | ({
       instructionType: CentlaliaTicketingInstruction.UpdateEvent;
     } & ParsedUpdateEventInstruction<TProgram>)
@@ -643,6 +720,13 @@ export function parseCentlaliaTicketingInstruction<TProgram extends string>(
         ...parseConsumeCheckInInstruction(instruction),
       };
     }
+    case CentlaliaTicketingInstruction.ConsumeCheckInCore: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: CentlaliaTicketingInstruction.ConsumeCheckInCore,
+        ...parseConsumeCheckInCoreInstruction(instruction),
+      };
+    }
     case CentlaliaTicketingInstruction.CreateEvent: {
       assertIsInstructionWithAccounts(instruction);
       return {
@@ -685,11 +769,25 @@ export function parseCentlaliaTicketingInstruction<TProgram extends string>(
         ...parsePresentCheckInInstruction(instruction),
       };
     }
+    case CentlaliaTicketingInstruction.PresentCheckInCore: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: CentlaliaTicketingInstruction.PresentCheckInCore,
+        ...parsePresentCheckInCoreInstruction(instruction),
+      };
+    }
     case CentlaliaTicketingInstruction.PrimaryPurchase: {
       assertIsInstructionWithAccounts(instruction);
       return {
         instructionType: CentlaliaTicketingInstruction.PrimaryPurchase,
         ...parsePrimaryPurchaseInstruction(instruction),
+      };
+    }
+    case CentlaliaTicketingInstruction.PrimaryPurchaseCore: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: CentlaliaTicketingInstruction.PrimaryPurchaseCore,
+        ...parsePrimaryPurchaseCoreInstruction(instruction),
       };
     }
     case CentlaliaTicketingInstruction.PublishEvent: {
@@ -704,6 +802,13 @@ export function parseCentlaliaTicketingInstruction<TProgram extends string>(
       return {
         instructionType: CentlaliaTicketingInstruction.RevokeStaff,
         ...parseRevokeStaffInstruction(instruction),
+      };
+    }
+    case CentlaliaTicketingInstruction.SetAssetStandard: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: CentlaliaTicketingInstruction.SetAssetStandard,
+        ...parseSetAssetStandardInstruction(instruction),
       };
     }
     case CentlaliaTicketingInstruction.UpdateEvent: {
@@ -785,6 +890,9 @@ export type CentlaliaTicketingPluginInstructions = {
   consumeCheckIn: (
     input: ConsumeCheckInAsyncInput,
   ) => ReturnType<typeof getConsumeCheckInInstructionAsync> & SelfPlanAndSendFunctions;
+  consumeCheckInCore: (
+    input: ConsumeCheckInCoreAsyncInput,
+  ) => ReturnType<typeof getConsumeCheckInCoreInstructionAsync> & SelfPlanAndSendFunctions;
   createEvent: (
     input: CreateEventAsyncInput,
   ) => ReturnType<typeof getCreateEventInstructionAsync> & SelfPlanAndSendFunctions;
@@ -803,15 +911,24 @@ export type CentlaliaTicketingPluginInstructions = {
   presentCheckIn: (
     input: PresentCheckInAsyncInput,
   ) => ReturnType<typeof getPresentCheckInInstructionAsync> & SelfPlanAndSendFunctions;
+  presentCheckInCore: (
+    input: PresentCheckInCoreAsyncInput,
+  ) => ReturnType<typeof getPresentCheckInCoreInstructionAsync> & SelfPlanAndSendFunctions;
   primaryPurchase: (
     input: PrimaryPurchaseAsyncInput,
   ) => ReturnType<typeof getPrimaryPurchaseInstructionAsync> & SelfPlanAndSendFunctions;
+  primaryPurchaseCore: (
+    input: PrimaryPurchaseCoreAsyncInput,
+  ) => ReturnType<typeof getPrimaryPurchaseCoreInstructionAsync> & SelfPlanAndSendFunctions;
   publishEvent: (
     input: PublishEventAsyncInput,
   ) => ReturnType<typeof getPublishEventInstructionAsync> & SelfPlanAndSendFunctions;
   revokeStaff: (
     input: RevokeStaffAsyncInput,
   ) => ReturnType<typeof getRevokeStaffInstructionAsync> & SelfPlanAndSendFunctions;
+  setAssetStandard: (
+    input: SetAssetStandardAsyncInput,
+  ) => ReturnType<typeof getSetAssetStandardInstructionAsync> & SelfPlanAndSendFunctions;
   updateEvent: (
     input: UpdateEventAsyncInput,
   ) => ReturnType<typeof getUpdateEventInstructionAsync> & SelfPlanAndSendFunctions;
@@ -833,6 +950,7 @@ export type CentlaliaTicketingPluginPdas = {
   listing: typeof findListingPda;
   checkInIntent: typeof findCheckInIntentPda;
   ticketRecord: typeof findTicketRecordPda;
+  coreAsset: typeof findCoreAssetPda;
 };
 
 export type CentlaliaTicketingPluginRequirements = ClientWithRpc<
@@ -874,6 +992,8 @@ export function centlaliaTicketingProgram() {
             addSelfPlanAndSendFunctions(client, getCloseEventInstructionAsync(input)),
           consumeCheckIn: (input) =>
             addSelfPlanAndSendFunctions(client, getConsumeCheckInInstructionAsync(input)),
+          consumeCheckInCore: (input) =>
+            addSelfPlanAndSendFunctions(client, getConsumeCheckInCoreInstructionAsync(input)),
           createEvent: (input) =>
             addSelfPlanAndSendFunctions(client, getCreateEventInstructionAsync(input)),
           expireCheckIn: (input) =>
@@ -886,12 +1006,18 @@ export function centlaliaTicketingProgram() {
             addSelfPlanAndSendFunctions(client, getListTicketInstructionAsync(input)),
           presentCheckIn: (input) =>
             addSelfPlanAndSendFunctions(client, getPresentCheckInInstructionAsync(input)),
+          presentCheckInCore: (input) =>
+            addSelfPlanAndSendFunctions(client, getPresentCheckInCoreInstructionAsync(input)),
           primaryPurchase: (input) =>
             addSelfPlanAndSendFunctions(client, getPrimaryPurchaseInstructionAsync(input)),
+          primaryPurchaseCore: (input) =>
+            addSelfPlanAndSendFunctions(client, getPrimaryPurchaseCoreInstructionAsync(input)),
           publishEvent: (input) =>
             addSelfPlanAndSendFunctions(client, getPublishEventInstructionAsync(input)),
           revokeStaff: (input) =>
             addSelfPlanAndSendFunctions(client, getRevokeStaffInstructionAsync(input)),
+          setAssetStandard: (input) =>
+            addSelfPlanAndSendFunctions(client, getSetAssetStandardInstructionAsync(input)),
           updateEvent: (input) =>
             addSelfPlanAndSendFunctions(client, getUpdateEventInstructionAsync(input)),
           updatePlatform: (input) =>
@@ -909,6 +1035,7 @@ export function centlaliaTicketingProgram() {
           listing: findListingPda,
           checkInIntent: findCheckInIntentPda,
           ticketRecord: findTicketRecordPda,
+          coreAsset: findCoreAssetPda,
         },
         identifyAccount: identifyCentlaliaTicketingAccount,
         identifyInstruction: identifyCentlaliaTicketingInstruction,

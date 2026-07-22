@@ -398,6 +398,76 @@
       "args": []
     },
     {
+      "name": "consume_check_in_core",
+      "discriminator": [201, 35, 45, 50, 209, 65, 161, 78],
+      "accounts": [
+        {
+          "name": "staff",
+          "signer": true
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event"
+        },
+        {
+          "name": "ticket_record",
+          "writable": true
+        },
+        {
+          "name": "core_asset"
+        },
+        {
+          "name": "asset_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121]
+              },
+              {
+                "kind": "account",
+                "path": "platform_config"
+              }
+            ]
+          }
+        },
+        {
+          "name": "staff_authorization",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [115, 116, 97, 102, 102]
+              },
+              {
+                "kind": "account",
+                "path": "event"
+              },
+              {
+                "kind": "account",
+                "path": "staff"
+              }
+            ]
+          }
+        },
+        {
+          "name": "check_in_intent",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "create_event",
       "discriminator": [49, 219, 29, 203, 22, 98, 100, 87],
       "accounts": [
@@ -796,6 +866,87 @@
       ]
     },
     {
+      "name": "present_check_in_core",
+      "discriminator": [60, 115, 205, 169, 119, 248, 7, 110],
+      "accounts": [
+        {
+          "name": "holder",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event"
+        },
+        {
+          "name": "ticket_record",
+          "writable": true
+        },
+        {
+          "name": "core_asset"
+        },
+        {
+          "name": "asset_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121]
+              },
+              {
+                "kind": "account",
+                "path": "platform_config"
+              }
+            ]
+          }
+        },
+        {
+          "name": "check_in_intent",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [99, 104, 101, 99, 107, 45, 105, 110, 45, 105, 110, 116, 101, 110, 116]
+              },
+              {
+                "kind": "account",
+                "path": "ticket_record"
+              },
+              {
+                "kind": "arg",
+                "path": "intent_nonce"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "intent_nonce",
+          "type": "u64"
+        },
+        {
+          "name": "expires_at",
+          "type": "i64"
+        }
+      ]
+    },
+    {
       "name": "primary_purchase",
       "discriminator": [81, 231, 187, 235, 87, 209, 43, 86],
       "accounts": [
@@ -896,6 +1047,110 @@
       ]
     },
     {
+      "name": "primary_purchase_core",
+      "discriminator": [58, 175, 221, 83, 168, 159, 70, 236],
+      "accounts": [
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event",
+          "writable": true
+        },
+        {
+          "name": "tier",
+          "writable": true
+        },
+        {
+          "name": "organizer",
+          "writable": true,
+          "relations": ["event"]
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "ticket_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [116, 105, 99, 107, 101, 116]
+              },
+              {
+                "kind": "account",
+                "path": "event"
+              },
+              {
+                "kind": "arg",
+                "path": "ticket_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "core_asset",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [99, 111, 114, 101, 45, 97, 115, 115, 101, 116]
+              },
+              {
+                "kind": "account",
+                "path": "ticket_record"
+              }
+            ]
+          }
+        },
+        {
+          "name": "asset_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121]
+              },
+              {
+                "kind": "account",
+                "path": "platform_config"
+              }
+            ]
+          }
+        },
+        {
+          "name": "core_program",
+          "address": "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "ticket_id",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "publish_event",
       "discriminator": [66, 121, 175, 133, 20, 2, 221, 42],
       "accounts": [
@@ -970,6 +1225,42 @@
         }
       ],
       "args": []
+    },
+    {
+      "name": "set_asset_standard",
+      "discriminator": [44, 210, 136, 166, 106, 18, 224, 43],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": ["platform_config"]
+        },
+        {
+          "name": "platform_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury"
+        }
+      ],
+      "args": [
+        {
+          "name": "asset_standard",
+          "type": {
+            "defined": {
+              "name": "AssetStandard"
+            }
+          }
+        }
+      ]
     },
     {
       "name": "update_event",

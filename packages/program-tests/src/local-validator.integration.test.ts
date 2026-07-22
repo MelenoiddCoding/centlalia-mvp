@@ -23,6 +23,7 @@ import {
   setTransactionMessageLifetimeUsingBlockhash,
   signTransactionMessageWithSigners,
   appendTransactionMessageInstruction,
+  AccountRole,
   type Instruction,
   type InstructionWithSigners,
   type KeyPairSigner,
@@ -31,6 +32,8 @@ import { expect, test } from 'vitest';
 
 const UPGRADEABLE_LOADER_ADDRESS = address('BPFLoaderUpgradeab1e11111111111111111111111');
 const PROGRAM_ADDRESS = generated.CENTLALIA_TICKETING_PROGRAM_ADDRESS;
+const MPL_CORE_ADDRESS = address('CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d');
+const SYSTEM_PROGRAM_ADDRESS = address('11111111111111111111111111111111');
 const AIRDROP_LAMPORTS = lamports(5_000_000_000n);
 const TICKET_PRICE_LAMPORTS = 1_000_000n;
 
@@ -196,7 +199,7 @@ test('local validator completes purchase and exactly-once check-in', async () =>
     admin,
     await generated.getInitializePlatformInstructionAsync({
       admin,
-      assetStandard: generated.AssetStandard.Managed,
+      assetStandard: generated.AssetStandard.MplCore,
       platformFeeBps: 0,
       program: PROGRAM_ADDRESS,
       programData,
@@ -212,7 +215,7 @@ test('local validator completes purchase and exactly-once check-in', async () =>
   const [event] = await generated.findEventPda({ eventId, organizer: organizer.address });
   const [tier] = await generated.findTierPda({ event, tierId });
   const [ticketRecord] = await generated.findTicketRecordPda({ event, ticketId });
-  const [managedAsset] = await generated.findManagedAssetPda({ ticketRecord });
+  const [coreAsset] = await generated.findCoreAssetPda({ ticketRecord });
   const [staffAuthorization] = await generated.findStaffAuthorizationPda({
     event,
     staff: staff.address,
@@ -263,13 +266,13 @@ test('local validator completes purchase and exactly-once check-in', async () =>
     await generated.getPublishEventInstructionAsync({ event, organizer }),
   );
   await submit(
-    'primaryPurchase',
+    'primaryPurchaseCore',
     attendee,
-    await generated.getPrimaryPurchaseInstructionAsync({
+    await generated.getPrimaryPurchaseCoreInstructionAsync({
       assetAuthority: (await generated.findAssetAuthorityPda({ platformConfig }))[0],
       buyer: attendee,
+      coreAsset,
       event,
-      managedAsset,
       organizer: organizer.address,
       platformConfig,
       ticketId,
@@ -278,6 +281,35 @@ test('local validator completes purchase and exactly-once check-in', async () =>
       treasury: admin.address,
     }),
   );
+
+  const directTransfer = {
+    programAddress: MPL_CORE_ADDRESS,
+    accounts: [
+      { address: coreAsset, role: AccountRole.WRITABLE },
+      { address: MPL_CORE_ADDRESS, role: AccountRole.READONLY },
+      { address: attendee.address, role: AccountRole.WRITABLE_SIGNER, signer: attendee },
+      { address: attendee.address, role: AccountRole.READONLY_SIGNER, signer: attendee },
+      { address: organizer.address, role: AccountRole.READONLY },
+      { address: SYSTEM_PROGRAM_ADDRESS, role: AccountRole.READONLY },
+      { address: MPL_CORE_ADDRESS, role: AccountRole.READONLY },
+    ] as const,
+    // TransferV1 discriminator followed by compression_proof: None.
+    data: new Uint8Array([14, 0]),
+  } as unknown as SignableInstruction;
+  const bypass = await buildTransaction(attendee, directTransfer);
+  let bypassError: unknown;
+  try {
+    await sendAndConfirm(bypass.transaction, {
+      commitment: 'confirmed',
+      skipPreflight: true,
+    });
+  } catch (error) {
+    bypassError = error;
+  }
+  expect(
+    bypassError,
+    'The frozen Core asset was transferred directly, bypassing Centlalia policy.',
+  ).toBeDefined();
   await submit(
     'authorizeStaff',
     organizer,
@@ -291,22 +323,22 @@ test('local validator completes purchase and exactly-once check-in', async () =>
 
   const expiresAt = BigInt(Math.floor(Date.now() / 1_000) + 240);
   await submit(
-    'presentCheckIn',
+    'presentCheckInCore',
     attendee,
-    await generated.getPresentCheckInInstructionAsync({
+    await generated.getPresentCheckInCoreInstructionAsync({
       checkInIntent,
+      coreAsset,
       event,
       expiresAt,
       holder: attendee,
       intentNonce,
-      managedAsset,
       ticketRecord,
     }),
   );
-  const consumeInstruction = await generated.getConsumeCheckInInstructionAsync({
+  const consumeInstruction = await generated.getConsumeCheckInCoreInstructionAsync({
     checkInIntent,
+    coreAsset,
     event,
-    managedAsset,
     staff,
     staffAuthorization,
     ticketRecord,
@@ -357,7 +389,7 @@ test('local validator completes purchase and exactly-once check-in', async () =>
           attendee: attendee.address,
           checkInIntent,
           event,
-          managedAsset,
+          coreAsset,
           organizer: organizer.address,
           platformConfig,
           staff: staff.address,

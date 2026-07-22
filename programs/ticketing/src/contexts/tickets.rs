@@ -49,6 +49,44 @@ pub struct PrimaryPurchase<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(ticket_id: u64)]
+pub struct PrimaryPurchaseCore<'info> {
+    #[account(mut)]
+    pub buyer: Signer<'info>,
+    #[account(seeds = [b"platform"], bump = platform_config.bump)]
+    pub platform_config: Account<'info, PlatformConfig>,
+    #[account(mut, has_one = organizer)]
+    pub event: Account<'info, Event>,
+    #[account(mut, constraint = tier.event == event.key() @ TicketingError::InvalidRelationship)]
+    pub tier: Account<'info, Tier>,
+    #[account(mut, address = event.organizer)]
+    pub organizer: SystemAccount<'info>,
+    #[account(mut, address = event.platform_treasury)]
+    pub treasury: SystemAccount<'info>,
+    #[account(
+        init,
+        payer = buyer,
+        space = TicketRecord::SPACE,
+        seeds = [b"ticket", event.key().as_ref(), &ticket_id.to_le_bytes()],
+        bump
+    )]
+    pub ticket_record: Account<'info, TicketRecord>,
+    /// CHECK: MPL Core creates this PDA and assigns it to its program.
+    #[account(mut, seeds = [b"core-asset", ticket_record.key().as_ref()], bump)]
+    pub core_asset: UncheckedAccount<'info>,
+    /// CHECK: PDA signs Core creation and remains the permanent freeze authority.
+    #[account(
+        seeds = [b"asset-authority", platform_config.key().as_ref()],
+        bump = platform_config.asset_authority_bump
+    )]
+    pub asset_authority: UncheckedAccount<'info>,
+    /// CHECK: Address is constrained to the official MPL Core program.
+    #[account(address = mpl_core::ID)]
+    pub core_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
 pub struct GiftTicket<'info> {
     pub current_owner: Signer<'info>,
     pub recipient: SystemAccount<'info>,

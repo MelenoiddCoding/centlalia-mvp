@@ -2,18 +2,18 @@
 
 Estado: arquitectura objetivo con corte de implementación
 
-Fecha de corte: 2026-07-16
+Fecha de corte: 2026-07-22
 
 Red de incubacion: Solana devnet
 
 ## Estado implementado al corte
 
-- El programa Anchor implementa cuentas, autorizaciones, circulación, reventa y check-in exactly-once con un `ManagedAsset` interno; 25 pruebas Rust, Clippy y formato pasan.
-- `packages/client` contiene la demo determinista, el IDL, 52 módulos Codama generados, detección Wallet Standard y un adapter que construye ocho operaciones y serializa transacciones v0.
-- `apps/web` ejecuta el recorrido completo en modo demo explícito, protege el endpoint DAS y muestra un diagnóstico RPC/wallet real. El recorrido por roles todavía no envía instrucciones al programa.
+- El programa Anchor conserva `ManagedAsset` y añade creación/validación MPL Core por CPI para compra y check-in; 25 pruebas Rust, Clippy y formato pasan.
+- `packages/client` contiene demo, IDL/Codama, Wallet Standard y un adapter con once operaciones de la vertical que serializa transacciones v0.
+- `apps/web` separa la mesa demo de una consola devnet que envía, espera cuentas confirmadas y enlaza evidencia en Explorer.
 - El program ID `6KVngKJVYYbqfeXxzXdnaZzmKwo58iin8LmiMyZjgpbu` está desplegado con loader upgradeable en devnet; `PlatformConfig` está inicializado con `ManagedAsset` y fee 0%.
-- El harness con admin, organizador, asistente y staff pasa contra el SBF en validator Linux dentro de la CI; verifica compra, presentación, consumo y rechazo duplicado `IntentNotPending (6036)`.
-- Bubblegum V2, MPL Core y DAS aplicado a tickets reales permanecen pendientes. No se consideran implementados por aparecer en la arquitectura objetivo.
+- El harness fue migrado a MPL Core y clona el programa oficial en validator; su ejecución SBF en CI Linux es un gate pendiente para este corte.
+- Bubblegum V2 y DAS no participan en la primera vertical. MPL Core no se declara operativo en devnet hasta completar CI, upgrade y tres wallets reales.
 
 ## Principios
 
@@ -40,8 +40,10 @@ packages/client              /api/das
 Programa Anchor <---- RPC Solana / proveedor DAS
        |
        v
-PDAs de dominio + ManagedAsset
-                     (adapter Metaplex futuro)
+PDAs de dominio + TicketRecord
+       |              \
+ ManagedAsset       CPI MPL Core
+ (compatibilidad)   (vertical de acceso)
 ```
 
 ### Componentes
@@ -62,7 +64,7 @@ El `program_id` está sincronizado en `declare_id!`, `Anchor.toml` y el entorno 
 - `@solana/kit` y Wallet Standard para RPC, mensajes v0, detección, conexión y firma.
 - Rust, Anchor 1.1.2 y Agave/Solana compatible dentro del devcontainer.
 - Codama para generar el cliente a partir del IDL.
-- `ManagedAsset` como estándar implementado de incubación; Bubblegum V2 y MPL Core solo se habilitarán con CPI y pruebas de propiedad reales.
+- MPL Core para la vertical de acceso; `ManagedAsset` queda como compatibilidad y Bubblegum V2 permanece sujeto a evidencia de escala.
 - Vitest para paquetes TypeScript, pruebas Anchor para el programa y Playwright para E2E web.
 
 Las versiones efectivas deben estar fijadas en manifests y lockfiles. Este documento no autoriza actualizaciones automaticas sin ejecutar la matriz de pruebas.
@@ -73,7 +75,7 @@ Las versiones efectivas deben estar fijadas en manifests y lockfiles. Este docum
 
 - `admin`
 - `treasury`, validada como `SystemAccount` al inicializar o actualizar
-- `asset_standard`: `Managed` implementado; `BubblegumV2` y `MplCore` reservados y rechazados hasta integrar sus adapters
+- `asset_standard`: `Managed` y `MplCore` soportados; `BubblegumV2` rechazado hasta integrar y probar su adapter
 - `platform_fee_bps`
 - `paused`
 - bumps de plataforma y autoridad de asset, fecha de creación y versión
@@ -221,19 +223,19 @@ No se exige QR para el MVP. Un QR futuro podra transportar el identificador de l
 
 ### Decisión vigente
 
-El corte actual usa exclusivamente `ManagedAsset`. La creación, regalo y reventa actualizan owner del asset y `TicketRecord` dentro de la misma instrucción; configurar `BubblegumV2` o `MplCore` se rechaza. Esta decisión demuestra invariantes del ledger de Centlalia, pero no interoperabilidad NFT/cNFT ni propiedad consultable mediante DAS.
+La primera vertical externa usa MPL Core. `primary_purchase_core` crea el activo y `TicketRecord` en una operación atómica; presentación y consumo verifican el owner Core y la autoridad PDA. El plugin de congelamiento permanente impide que el holder transfiera por fuera de las políticas mientras regalo/reventa Core no estén habilitados.
 
 ### Gate para un estándar externo
 
-Antes de sustituir `ManagedAsset`, un adapter CPI en SBF/devnet debe demostrar:
+Antes de declarar aprobado el adapter Core, el gate SBF/devnet debe demostrar:
 
-- creacion de tree y coleccion con autoridad PDA de plataforma;
-- mint y lectura mediante DAS;
-- transferencia de titular coherente con `TicketRecord`;
+- creación Core con autoridad PDA de plataforma;
+- lectura directa de owner y update authority;
+- intento de transferencia directa rechazado mientras el activo está congelado;
 - politica de freeze o delegado permanente necesaria para impedir circulacion incompatible;
 - operacion con al menos dos organizadores sobre la misma autoridad de plataforma.
 
-Si una prueba falla, `ManagedAsset` permanece habilitado y el producto no se presenta como NFT/cNFT. No se mantiene una implementación híbrida donde `TicketRecord.owner` y el asset puedan divergir. Metaplex indica que Bubblegum V2 requiere un proveedor RPC con DAS y que su adopción en wallets/marketplaces sigue en progreso; esa limitación no autoriza reducir la invariancia de propiedad.
+Si una prueba falla, `ManagedAsset` permanece habilitado y el producto no se presenta como NFT interoperable. No se mantiene una implementación híbrida donde `TicketRecord.owner` y el asset puedan divergir. Bubblegum se reconsidera sólo por una necesidad observada de compresión.
 
 ## Pagos y reventa
 

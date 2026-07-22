@@ -16,23 +16,31 @@ import {
   CENTLALIA_TICKETING_PROGRAM_ADDRESS,
   fetchMaybeEvent,
   fetchMaybePlatformConfig,
+  fetchMaybeTicketRecord,
   findPlatformConfigPda,
   getAddTierInstructionAsync,
   getAuthorizeStaffInstructionAsync,
   getConsumeCheckInInstructionAsync,
+  getConsumeCheckInCoreInstructionAsync,
   getCreateEventInstructionAsync,
   getInitializePlatformInstructionAsync,
   getPresentCheckInInstructionAsync,
+  getPresentCheckInCoreInstructionAsync,
   getPrimaryPurchaseInstructionAsync,
+  getPrimaryPurchaseCoreInstructionAsync,
   getPublishEventInstructionAsync,
   type AddTierAsyncInput,
   type AuthorizeStaffAsyncInput,
   type ConsumeCheckInAsyncInput,
+  type ConsumeCheckInCoreAsyncInput,
   type CreateEventAsyncInput,
   type InitializePlatformAsyncInput,
   type PresentCheckInAsyncInput,
+  type PresentCheckInCoreAsyncInput,
   type PrimaryPurchaseAsyncInput,
+  type PrimaryPurchaseCoreAsyncInput,
   type PublishEventAsyncInput,
+  TicketStatus,
 } from './generated';
 import { GatewayError } from './gateway';
 import type { SolanaWalletBridge } from './wallet-standard';
@@ -72,6 +80,9 @@ export type AuthorizeStaffOperation = Omit<AuthorizeStaffAsyncInput, 'organizer'
 export type PrimaryPurchaseOperation = Omit<PrimaryPurchaseAsyncInput, 'buyer'>;
 export type PresentCheckInOperation = Omit<PresentCheckInAsyncInput, 'holder'>;
 export type ConsumeCheckInOperation = Omit<ConsumeCheckInAsyncInput, 'staff'>;
+export type PrimaryPurchaseCoreOperation = Omit<PrimaryPurchaseCoreAsyncInput, 'buyer'>;
+export type PresentCheckInCoreOperation = Omit<PresentCheckInCoreAsyncInput, 'holder'>;
+export type ConsumeCheckInCoreOperation = Omit<ConsumeCheckInCoreAsyncInput, 'staff'>;
 
 function validatedRpcUrl(rpcUrl: string): string {
   try {
@@ -195,6 +206,45 @@ export class CodamaProgramAdapter {
     return fetchMaybeEvent(this.rpc, event, { commitment: 'confirmed' });
   }
 
+  async fetchPlatformConfig() {
+    const [platformConfig] = await findPlatformConfigPda();
+    return fetchMaybePlatformConfig(this.rpc, platformConfig, { commitment: 'confirmed' });
+  }
+
+  async fetchTicketRecord(ticketRecord: Address) {
+    return fetchMaybeTicketRecord(this.rpc, ticketRecord, { commitment: 'confirmed' });
+  }
+
+  async waitForAccount(account: Address, attempts = 20): Promise<void> {
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      const response = await this.rpc
+        .getAccountInfo(account, { commitment: 'confirmed', encoding: 'base64' })
+        .send();
+      if (response.value) return;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    throw new GatewayError(
+      'CONFIRMATION_TIMEOUT',
+      'La transaccion fue enviada, pero su cuenta de evidencia no alcanzo confirmacion.',
+    );
+  }
+
+  async waitForTicketStatus(
+    ticketRecord: Address,
+    expected: TicketStatus,
+    attempts = 20,
+  ): Promise<void> {
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      const ticket = await this.fetchTicketRecord(ticketRecord);
+      if (ticket.exists && ticket.data.status === expected) return;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    throw new GatewayError(
+      'CONFIRMATION_TIMEOUT',
+      'La transaccion fue enviada, pero el estado esperado no alcanzo confirmacion.',
+    );
+  }
+
   async buildInitializePlatform(input: InitializePlatformOperation): Promise<Instruction> {
     return getInitializePlatformInstructionAsync({
       ...input,
@@ -237,6 +287,13 @@ export class CodamaProgramAdapter {
     });
   }
 
+  async buildPrimaryPurchaseCore(input: PrimaryPurchaseCoreOperation): Promise<Instruction> {
+    return getPrimaryPurchaseCoreInstructionAsync({
+      ...input,
+      buyer: instructionSigner(this.requireWallet()),
+    });
+  }
+
   async buildPresentCheckIn(input: PresentCheckInOperation): Promise<Instruction> {
     return getPresentCheckInInstructionAsync({
       ...input,
@@ -244,8 +301,22 @@ export class CodamaProgramAdapter {
     });
   }
 
+  async buildPresentCheckInCore(input: PresentCheckInCoreOperation): Promise<Instruction> {
+    return getPresentCheckInCoreInstructionAsync({
+      ...input,
+      holder: instructionSigner(this.requireWallet()),
+    });
+  }
+
   async buildConsumeCheckIn(input: ConsumeCheckInOperation): Promise<Instruction> {
     return getConsumeCheckInInstructionAsync({
+      ...input,
+      staff: instructionSigner(this.requireWallet()),
+    });
+  }
+
+  async buildConsumeCheckInCore(input: ConsumeCheckInCoreOperation): Promise<Instruction> {
+    return getConsumeCheckInCoreInstructionAsync({
       ...input,
       staff: instructionSigner(this.requireWallet()),
     });

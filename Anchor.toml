@@ -21,4 +21,10 @@ test = "pnpm --filter @centlalia/program-tests test:integration"
 [test]
 upgradeable = true
 
+[test.validator]
+url = "https://api.devnet.solana.com"
+
+[[test.validator.clone]]
+address = "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
+
 [hooks]

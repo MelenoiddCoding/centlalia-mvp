@@ -1,4 +1,11 @@
 use anchor_lang::prelude::*;
+use mpl_core::{
+    accounts::BaseAssetV1,
+    instructions::CreateV2CpiBuilder,
+    types::{
+        PermanentFreezeDelegate, Plugin, PluginAuthority, PluginAuthorityPair, UpdateAuthority,
+    },
+};
 
 use crate::{
     errors::TicketingError,
@@ -7,7 +14,23 @@ use crate::{
 
 pub fn require_supported_standard(standard: AssetStandard) -> Result<()> {
     require!(
+        matches!(standard, AssetStandard::Managed | AssetStandard::MplCore),
+        TicketingError::UnsupportedAssetStandard
+    );
+    Ok(())
+}
+
+pub fn require_managed_standard(standard: AssetStandard) -> Result<()> {
+    require!(
         standard == AssetStandard::Managed,
+        TicketingError::UnsupportedAssetStandard
+    );
+    Ok(())
+}
+
+pub fn require_core_standard(standard: AssetStandard) -> Result<()> {
+    require!(
+        standard == AssetStandard::MplCore,
         TicketingError::UnsupportedAssetStandard
     );
     Ok(())
@@ -20,7 +43,7 @@ pub fn verify_managed_asset(
     ticket: &TicketRecord,
     expected_authority: Pubkey,
 ) -> Result<()> {
-    require_supported_standard(ticket.asset_standard)?;
+    require_managed_standard(ticket.asset_standard)?;
     require_keys_eq!(ticket.asset_id, asset_key, TicketingError::InvalidAsset);
     require_keys_eq!(asset.ticket, ticket_key, TicketingError::InvalidAsset);
     require!(
@@ -36,6 +59,69 @@ pub fn verify_managed_asset(
         asset.owner,
         ticket.owner,
         TicketingError::AssetOwnerMismatch
+    );
+    Ok(())
+}
+
+pub struct CreateCoreAsset<'a, 'info> {
+    pub core_program: &'a AccountInfo<'info>,
+    pub asset: &'a AccountInfo<'info>,
+    pub asset_authority: &'a AccountInfo<'info>,
+    pub payer: &'a AccountInfo<'info>,
+    pub owner: &'a AccountInfo<'info>,
+    pub system_program: &'a AccountInfo<'info>,
+    pub name: String,
+    pub uri: String,
+}
+
+pub fn create_core_asset(
+    accounts: CreateCoreAsset<'_, '_>,
+    asset_signer: &[&[u8]],
+    authority_signer: &[&[u8]],
+) -> Result<()> {
+    let authority = *accounts.asset_authority.key;
+    let plugins = vec![PluginAuthorityPair {
+        plugin: Plugin::PermanentFreezeDelegate(PermanentFreezeDelegate { frozen: true }),
+        authority: Some(PluginAuthority::Address { address: authority }),
+    }];
+
+    CreateV2CpiBuilder::new(accounts.core_program)
+        .asset(accounts.asset)
+        .authority(Some(accounts.asset_authority))
+        .payer(accounts.payer)
+        .owner(Some(accounts.owner))
+        .update_authority(Some(accounts.asset_authority))
+        .system_program(accounts.system_program)
+        .name(accounts.name)
+        .uri(accounts.uri)
+        .plugins(plugins)
+        .invoke_signed(&[asset_signer, authority_signer])?;
+    Ok(())
+}
+
+pub fn verify_core_asset(
+    asset: &AccountInfo<'_>,
+    ticket: &TicketRecord,
+    expected_owner: Pubkey,
+    expected_authority: Pubkey,
+) -> Result<()> {
+    require_core_standard(ticket.asset_standard)?;
+    require_keys_eq!(ticket.asset_id, *asset.key, TicketingError::InvalidAsset);
+    require_keys_eq!(*asset.owner, mpl_core::ID, TicketingError::InvalidAsset);
+
+    let data = asset
+        .try_borrow_data()
+        .map_err(|_| error!(TicketingError::InvalidAsset))?;
+    let core_asset =
+        BaseAssetV1::from_bytes(&data).map_err(|_| error!(TicketingError::InvalidAsset))?;
+    require_keys_eq!(
+        core_asset.owner,
+        expected_owner,
+        TicketingError::AssetOwnerMismatch
+    );
+    require!(
+        core_asset.update_authority == UpdateAuthority::Address(expected_authority),
+        TicketingError::InvalidAssetAuthority
     );
     Ok(())
 }
@@ -156,8 +242,10 @@ mod tests {
     }
 
     #[test]
-    fn external_standards_are_closed_until_adapter_exists() {
+    fn only_standards_with_adapters_are_supported() {
         assert!(require_supported_standard(AssetStandard::BubblegumV2).is_err());
-        assert!(require_supported_standard(AssetStandard::MplCore).is_err());
+        assert!(require_supported_standard(AssetStandard::MplCore).is_ok());
+        assert!(require_managed_standard(AssetStandard::MplCore).is_err());
+        assert!(require_core_standard(AssetStandard::Managed).is_err());
     }
 }

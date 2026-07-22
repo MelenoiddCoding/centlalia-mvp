@@ -110,9 +110,19 @@ Este registro sustituye las decisiones incompatibles del dossier historico. Una 
 - **Consecuencia:** el MVP valida reglas de acceso, pero no puede presentarse todavía como ticket cNFT/NFT portable ni usar DAS como evidencia de propiedad.
 - **Reabrir si:** mint, lectura, transferencia y política del estándar externo pasan pruebas SBF/devnet y mantienen sincronía con `TicketRecord`.
 
+## D-031. Usar MPL Core para la primera vertical transaccional
+
+- **Estado:** implementada en código; pendiente de gate SBF y devnet al 2026-07-22.
+- **Decisión:** crear el activo Core por CPI dentro de `primary_purchase_core` y congelarlo con autoridad PDA de Centlalia.
+- **Razón:** permite validar propiedad y acceso sin introducir antes de tiempo árbol, DAS y pruebas Merkle de Bubblegum.
+- **Control:** check-in verifica owner, programa propietario y update authority directamente desde la cuenta Core.
+- **Límite:** no se afirma operación devnet ni adopción de wallet hasta registrar firmas públicas del recorrido de tres wallets.
+- **Reabrir si:** el E2E SBF falla, el holder logra transferir fuera de política o la compresión se vuelve un requisito observado.
+
 ## Decisiones historicas superadas
 
 - Productizar directamente el repo del hackathon: superada por D-017.
 - Tratar grant/public good como primera capa de sostenibilidad actual: superada por D-027.
 - Usar `recognized_owner` sin transferencia real: prohibida por D-022.
+- Rechazar MPL Core por ausencia de CPI: D-030 queda superada para compra y check-in por D-031; Managed sigue disponible para compatibilidad.
 - Tratar reventa como dolor principal asumido: reemplazada por D-018 y D-019.

@@ -51,6 +51,15 @@ pub fn update_platform(
     Ok(())
 }
 
+pub fn set_asset_standard(
+    ctx: Context<UpdatePlatform>,
+    asset_standard: AssetStandard,
+) -> Result<()> {
+    require_supported_standard(asset_standard)?;
+    ctx.accounts.platform_config.asset_standard = asset_standard;
+    Ok(())
+}
+
 pub fn create_event(ctx: Context<CreateEvent>, event_id: u64, details: EventDetails) -> Result<()> {
     require_platform_active(&ctx.accounts.platform_config)?;
     validate_event_details(&details, ctx.accounts.platform_config.platform_fee_bps)?;

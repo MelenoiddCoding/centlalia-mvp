@@ -53,7 +53,7 @@ const details = {
 };
 
 describe('CodamaProgramAdapter', () => {
-  it('construye con Codama las ocho operaciones del vertical real', async () => {
+  it('construye con Codama las operaciones Managed y Core del vertical real', async () => {
     const { bridge } = wallet();
     const adapter = readyAdapter(bridge);
     const event = anotherAddress;
@@ -96,9 +96,29 @@ describe('CodamaProgramAdapter', () => {
         ticketRecord,
         checkInIntent,
       }),
+      adapter.buildPrimaryPurchaseCore({
+        event,
+        tier,
+        organizer: anotherAddress,
+        treasury: anotherAddress,
+        ticketId: 0n,
+      }),
+      adapter.buildPresentCheckInCore({
+        event,
+        ticketRecord,
+        coreAsset: anotherAddress,
+        intentNonce: 0n,
+        expiresAt: 3_300n,
+      }),
+      adapter.buildConsumeCheckInCore({
+        event,
+        ticketRecord,
+        coreAsset: anotherAddress,
+        checkInIntent,
+      }),
     ]);
 
-    expect(instructions).toHaveLength(8);
+    expect(instructions).toHaveLength(11);
     expect(
       instructions.every(
         (instruction) => instruction.programAddress === CENTLALIA_TICKETING_PROGRAM_ADDRESS,

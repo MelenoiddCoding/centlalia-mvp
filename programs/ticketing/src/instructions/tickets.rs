@@ -1,8 +1,13 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    asset::{require_supported_standard, transfer_managed_asset, verify_managed_asset},
-    contexts::{BuyResale, CancelListing, GiftTicket, ListTicket, PrimaryPurchase},
+    asset::{
+        create_core_asset, require_core_standard, require_managed_standard, transfer_managed_asset,
+        verify_managed_asset, CreateCoreAsset,
+    },
+    contexts::{
+        BuyResale, CancelListing, GiftTicket, ListTicket, PrimaryPurchase, PrimaryPurchaseCore,
+    },
     domain::{max_resale_price, primary_split, resale_split},
     errors::TicketingError,
     events::{PrimaryPurchaseRecorded, TicketOwnershipTransferred},
@@ -15,7 +20,7 @@ use super::{
 
 pub fn primary_purchase(ctx: Context<PrimaryPurchase>, ticket_id: u64) -> Result<()> {
     require_platform_active(&ctx.accounts.platform_config)?;
-    require_supported_standard(ctx.accounts.platform_config.asset_standard)?;
+    require_managed_standard(ctx.accounts.platform_config.asset_standard)?;
     let now = Clock::get()?.unix_timestamp;
     require!(
         ctx.accounts.event.status == EventStatus::Published,
@@ -85,6 +90,111 @@ pub fn primary_purchase(ctx: Context<PrimaryPurchase>, ticket_id: u64) -> Result
         asset.bump = ctx.bumps.managed_asset;
         asset.created_at = now;
     }
+
+    ctx.accounts.tier.sold = ctx
+        .accounts
+        .tier
+        .sold
+        .checked_add(1)
+        .ok_or(TicketingError::ArithmeticOverflow)?;
+    ctx.accounts.event.next_ticket_id = ctx
+        .accounts
+        .event
+        .next_ticket_id
+        .checked_add(1)
+        .ok_or(TicketingError::ArithmeticOverflow)?;
+
+    emit!(PrimaryPurchaseRecorded {
+        event: event_key,
+        ticket: ticket_key,
+        asset_id: asset_key,
+        buyer: owner,
+        price_lamports: price,
+    });
+    Ok(())
+}
+
+pub fn primary_purchase_core(ctx: Context<PrimaryPurchaseCore>, ticket_id: u64) -> Result<()> {
+    require_platform_active(&ctx.accounts.platform_config)?;
+    require_core_standard(ctx.accounts.platform_config.asset_standard)?;
+    let now = Clock::get()?.unix_timestamp;
+    require!(
+        ctx.accounts.event.status == EventStatus::Published,
+        TicketingError::InvalidEventState
+    );
+    require!(
+        now >= ctx.accounts.event.sales_start_at && now <= ctx.accounts.event.sales_end_at,
+        TicketingError::SalesClosed
+    );
+    require!(ctx.accounts.tier.active, TicketingError::TierInactive);
+    require!(
+        ctx.accounts.tier.sold < ctx.accounts.tier.supply,
+        TicketingError::TierSoldOut
+    );
+    require!(
+        ticket_id == ctx.accounts.event.next_ticket_id,
+        TicketingError::InvalidSequence
+    );
+
+    let price = ctx.accounts.tier.price_lamports;
+    let (organizer_lamports, platform_lamports) =
+        primary_split(price, ctx.accounts.event.platform_fee_bps)?;
+    transfer_lamports(
+        &ctx.accounts.buyer,
+        &ctx.accounts.organizer,
+        &ctx.accounts.system_program,
+        organizer_lamports,
+    )?;
+    transfer_lamports(
+        &ctx.accounts.buyer,
+        &ctx.accounts.treasury,
+        &ctx.accounts.system_program,
+        platform_lamports,
+    )?;
+
+    let event_key = ctx.accounts.event.key();
+    let tier_key = ctx.accounts.tier.key();
+    let ticket_key = ctx.accounts.ticket_record.key();
+    let asset_key = ctx.accounts.core_asset.key();
+    let owner = ctx.accounts.buyer.key();
+    let core_asset_bump = [ctx.bumps.core_asset];
+    let asset_seeds: &[&[u8]] = &[b"core-asset", ticket_key.as_ref(), &core_asset_bump];
+    let authority_bump = [ctx.accounts.platform_config.asset_authority_bump];
+    let platform_key = ctx.accounts.platform_config.key();
+    let authority_seeds: &[&[u8]] = &[b"asset-authority", platform_key.as_ref(), &authority_bump];
+
+    create_core_asset(
+        CreateCoreAsset {
+            core_program: &ctx.accounts.core_program.to_account_info(),
+            asset: &ctx.accounts.core_asset.to_account_info(),
+            asset_authority: &ctx.accounts.asset_authority.to_account_info(),
+            payer: &ctx.accounts.buyer.to_account_info(),
+            owner: &ctx.accounts.buyer.to_account_info(),
+            system_program: &ctx.accounts.system_program.to_account_info(),
+            name: format!("{} #{}", ctx.accounts.event.title, ticket_id),
+            uri: ctx.accounts.event.metadata_uri.clone(),
+        },
+        asset_seeds,
+        authority_seeds,
+    )?;
+
+    let ticket = &mut ctx.accounts.ticket_record;
+    ticket.event = event_key;
+    ticket.tier = tier_key;
+    ticket.serial = ticket_id;
+    ticket.asset_id = asset_key;
+    ticket.asset_standard = AssetStandard::MplCore;
+    ticket.owner = owner;
+    ticket.original_price_lamports = price;
+    ticket.status = TicketStatus::Active;
+    ticket.transfer_count = 0;
+    ticket.used_at = None;
+    ticket.used_by = None;
+    ticket.next_listing_id = 0;
+    ticket.next_intent_nonce = 0;
+    ticket.active_intent = None;
+    ticket.bump = ctx.bumps.ticket_record;
+    ticket.created_at = now;
 
     ctx.accounts.tier.sold = ctx
         .accounts

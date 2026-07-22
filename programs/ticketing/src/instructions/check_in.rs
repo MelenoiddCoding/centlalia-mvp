@@ -1,8 +1,11 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    asset::verify_managed_asset,
-    contexts::{CancelCheckIn, ConsumeCheckIn, ExpireCheckIn, PresentCheckIn},
+    asset::{verify_core_asset, verify_managed_asset},
+    contexts::{
+        CancelCheckIn, ConsumeCheckIn, ConsumeCheckInCore, ExpireCheckIn, PresentCheckIn,
+        PresentCheckInCore,
+    },
     domain::validate_intent_expiry,
     errors::TicketingError,
     events::CheckInConsumed,
@@ -37,6 +40,60 @@ pub fn present_check_in(
         &ctx.accounts.managed_asset,
         ctx.accounts.ticket_record.key(),
         &ctx.accounts.ticket_record,
+        ctx.accounts.asset_authority.key(),
+    )?;
+
+    let now = Clock::get()?.unix_timestamp;
+    validate_intent_expiry(now, expires_at, ctx.accounts.event.check_in_end_at)?;
+    let ticket_key = ctx.accounts.ticket_record.key();
+    let event_key = ctx.accounts.event.key();
+    let intent_key = ctx.accounts.check_in_intent.key();
+    let intent = &mut ctx.accounts.check_in_intent;
+    intent.ticket = ticket_key;
+    intent.event = event_key;
+    intent.holder = ctx.accounts.holder.key();
+    intent.nonce = intent_nonce;
+    intent.expires_at = expires_at;
+    intent.status = CheckInIntentStatus::Pending;
+    intent.created_at = now;
+    intent.consumed_at = None;
+    intent.staff = None;
+    intent.bump = ctx.bumps.check_in_intent;
+    ctx.accounts.ticket_record.next_intent_nonce = ctx
+        .accounts
+        .ticket_record
+        .next_intent_nonce
+        .checked_add(1)
+        .ok_or(TicketingError::ArithmeticOverflow)?;
+    ctx.accounts.ticket_record.active_intent = Some(intent_key);
+    Ok(())
+}
+
+pub fn present_check_in_core(
+    ctx: Context<PresentCheckInCore>,
+    intent_nonce: u64,
+    expires_at: i64,
+) -> Result<()> {
+    require_platform_active(&ctx.accounts.platform_config)?;
+    require_check_in_open(&ctx.accounts.event)?;
+    require_active_ticket(&ctx.accounts.ticket_record)?;
+    require_keys_eq!(
+        ctx.accounts.ticket_record.owner,
+        ctx.accounts.holder.key(),
+        TicketingError::NotTicketOwner
+    );
+    require!(
+        intent_nonce == ctx.accounts.ticket_record.next_intent_nonce,
+        TicketingError::InvalidSequence
+    );
+    require!(
+        ctx.accounts.ticket_record.active_intent.is_none(),
+        TicketingError::IntentNotPending
+    );
+    verify_core_asset(
+        &ctx.accounts.core_asset.to_account_info(),
+        &ctx.accounts.ticket_record,
+        ctx.accounts.holder.key(),
         ctx.accounts.asset_authority.key(),
     )?;
 
@@ -138,6 +195,56 @@ pub fn consume_check_in(ctx: Context<ConsumeCheckIn>) -> Result<()> {
         ticket: ticket_key,
         holder,
         staff,
+        consumed_at: now,
+    });
+    Ok(())
+}
+
+pub fn consume_check_in_core(ctx: Context<ConsumeCheckInCore>) -> Result<()> {
+    require_platform_active(&ctx.accounts.platform_config)?;
+    require_check_in_open(&ctx.accounts.event)?;
+    require!(
+        ctx.accounts.staff_authorization.active,
+        TicketingError::StaffNotAuthorized
+    );
+    let now = Clock::get()?.unix_timestamp;
+    require!(
+        now < ctx.accounts.check_in_intent.expires_at,
+        TicketingError::IntentExpired
+    );
+    require_keys_eq!(
+        ctx.accounts.check_in_intent.holder,
+        ctx.accounts.ticket_record.owner,
+        TicketingError::AssetOwnerMismatch
+    );
+    verify_core_asset(
+        &ctx.accounts.core_asset.to_account_info(),
+        &ctx.accounts.ticket_record,
+        ctx.accounts.ticket_record.owner,
+        ctx.accounts.asset_authority.key(),
+    )?;
+    require!(
+        ctx.accounts.check_in_intent.status == CheckInIntentStatus::Pending,
+        TicketingError::IntentNotPending
+    );
+    require!(
+        ctx.accounts.ticket_record.active_intent == Some(ctx.accounts.check_in_intent.key()),
+        TicketingError::InvalidRelationship
+    );
+
+    ctx.accounts.check_in_intent.status = CheckInIntentStatus::Consumed;
+    ctx.accounts.check_in_intent.consumed_at = Some(now);
+    ctx.accounts.check_in_intent.staff = Some(ctx.accounts.staff.key());
+    ctx.accounts.ticket_record.status = TicketStatus::Used;
+    ctx.accounts.ticket_record.used_at = Some(now);
+    ctx.accounts.ticket_record.used_by = Some(ctx.accounts.staff.key());
+    ctx.accounts.ticket_record.active_intent = None;
+
+    emit!(CheckInConsumed {
+        event: ctx.accounts.event.key(),
+        ticket: ctx.accounts.ticket_record.key(),
+        holder: ctx.accounts.ticket_record.owner,
+        staff: ctx.accounts.staff.key(),
         consumed_at: now,
     });
     Ok(())
