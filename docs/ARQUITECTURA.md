@@ -12,8 +12,8 @@ Red de incubacion: Solana devnet
 - `packages/client` contiene demo, IDL/Codama, Wallet Standard y un adapter con once operaciones de la vertical que serializa transacciones v0.
 - `apps/web` separa la mesa demo de una consola devnet que envía, espera cuentas confirmadas y enlaza evidencia en Explorer.
 - El program ID `6KVngKJVYYbqfeXxzXdnaZzmKwo58iin8LmiMyZjgpbu` está desplegado con loader upgradeable en devnet; `PlatformConfig` está inicializado con `ManagedAsset` y fee 0%.
-- El harness fue migrado a MPL Core y clona el programa oficial en validator; su ejecución SBF en CI Linux es un gate pendiente para este corte.
-- Bubblegum V2 y DAS no participan en la primera vertical. MPL Core no se declara operativo en devnet hasta completar CI, upgrade y tres wallets reales.
+- El harness MPL Core clona el programa oficial en validator; build SBF, compra, verificación de owner, rechazo de transferencia y check-in pasaron en CI `29909723805`.
+- El programa y `PlatformConfig=MplCore` están actualizados en devnet. Bubblegum V2 y DAS no participan en la primera vertical; la prueba pública con tres wallets reales sigue pendiente.
 
 ## Principios
 

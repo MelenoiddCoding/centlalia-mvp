@@ -94,6 +94,6 @@ Las métricas de usuarios permanecen pendientes hasta ejecutar sesiones reales. 
 
 ## Estado de publicación
 
-El programa `6KVngKJVYYbqfeXxzXdnaZzmKwo58iin8LmiMyZjgpbu` y su `PlatformConfig` existen en devnet. El corte MPL Core de este repositorio compila en Rust nativo, pasa lint, tipos, pruebas unitarias y navegador; el build SBF, E2E con el programa Core oficial, upgrade devnet y primera evidencia pública deben pasar sus gates antes de declarar la vertical operativa. Ninguna credencial o keypair se guarda en Git.
+El programa `6KVngKJVYYbqfeXxzXdnaZzmKwo58iin8LmiMyZjgpbu` está actualizado en devnet y `PlatformConfig` usa `MplCore`. La [CI 29909723805](https://github.com/MelenoiddCoding/centlalia-mvp/actions/runs/29909723805) aprobó build SBF y E2E multiwallet con el programa Core oficial, incluida la transferencia directa rechazada. La [web pública](https://web-two-amber-35.vercel.app) expone la vertical; falta ejecutar y documentar el recorrido con tres wallets reales antes de llamarlo validación de usuario. Ninguna credencial o keypair se guarda en Git.
 
 Consulta [SECURITY.md](SECURITY.md) antes de operar el programa. El software no ha sido auditado y no debe utilizarse en mainnet.

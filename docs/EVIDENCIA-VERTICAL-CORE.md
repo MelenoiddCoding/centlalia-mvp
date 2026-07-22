@@ -23,19 +23,28 @@ El activo se crea por CPI desde `primary_purchase_core`. La cuenta del activo es
 
 ## Matriz de evidencia
 
-| Evidencia                           | Estado al corte                 | Gate para aprobar                          |
-| ----------------------------------- | ------------------------------- | ------------------------------------------ |
-| Rust, fmt y Clippy                  | Pasa local                      | CI Linux verde                             |
-| IDL y cliente Codama                | Generados; 11 builders probados | Sin diff después de regenerar              |
-| Web Wallet Standard                 | Implementada y compilada        | Firma real en desktop y móvil              |
-| Compra + creación Core atómica      | Implementada                    | E2E SBF con programa Core oficial          |
-| Owner Core verificado en check-in   | Implementado                    | Cuenta y owner observables en devnet       |
-| Segundo consumo                     | Cubierto en dominio y harness   | Error determinista en devnet               |
-| Prevención de transferencia externa | Plugin congelado implementado   | Intento directo de transferencia rechazado |
-| Evidencia de usuarios               | Pendiente                       | 5-10 sesiones según protocolo              |
+| Evidencia                           | Estado al corte                           | Gate para aprobar                      |
+| ----------------------------------- | ----------------------------------------- | -------------------------------------- |
+| Rust, fmt y Clippy                  | CI Linux verde                            | Aprobado                               |
+| IDL y cliente Codama                | Generados; 11 builders probados           | Aprobado                               |
+| Web Wallet Standard                 | Desplegada en producción                  | Pendiente recorrido con wallets reales |
+| Compra + creación Core atómica      | E2E SBF con programa Core oficial pasa    | Pendiente firma pública de usuario     |
+| Owner Core verificado en check-in   | Pasa en validator                         | Pendiente ticket en devnet             |
+| Segundo consumo                     | Error determinista en validator           | Pendiente rechazo público en devnet    |
+| Prevención de transferencia externa | TransferV1 directo rechazado en validator | Aprobado técnicamente                  |
+| Evidencia de usuarios               | Pendiente                                 | 5-10 sesiones según protocolo          |
 
 ## Regla de comunicación
 
-Hasta que CI SBF, upgrade devnet y el recorrido de tres wallets produzcan firmas públicas, se permite decir “vertical MPL Core implementada y pendiente de despliegue”. No se permite decir “MVP transaccional validado”, “NFT funcionando en wallets” o “usuarios lo necesitan”.
+CI SBF y upgrade devnet están completos. Hasta que el recorrido de tres wallets produzca firmas públicas, se permite decir “vertical MPL Core desplegada y pendiente de prueba con wallets reales”. No se permite decir “MVP transaccional validado”, “NFT adoptado por usuarios” o “usuarios lo necesitan”.
+
+## Evidencia pública del corte
+
+- CI completa: [run 29909723805](https://github.com/MelenoiddCoding/centlalia-mvp/actions/runs/29909723805).
+- Upgrade del programa: `4Te91RqrWqK1Jtx9VxsAstNkjDj1wHZnH2D8V4iXLpabv9GpyEqchMpZK752MHzuPpKJXpebaoKc5cE3yCUAUjfV`.
+- `PlatformConfig` cambiado a `MplCore`: `3YtA1dbb5B3JG2aUFpzaxGC2scszyc8GZDU2wMgaowcdNP5Ay6sbJT7FC2LoWpFixg5aPXWciBxYaVV2gATMm1ko`.
+- Web de producción: [web-two-amber-35.vercel.app](https://web-two-amber-35.vercel.app), deployment `dpl_8JiJn9hJfG2V8sgCkBmfTAGchKSF`.
+
+Estas firmas prueban despliegue y configuración. No prueban todavía creación de evento, compra, activo, presentación ni check-in en devnet.
 
 Después del gate técnico se observarán tiempos, errores, comprensión de wallet y valor percibido. Si los usuarios no valoran propiedad verificable o política compartida frente a QR/lista privada, la hipótesis Solana debe refutarse o reducirse.
