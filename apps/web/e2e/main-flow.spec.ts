@@ -1,5 +1,17 @@
 import { expect, test } from '@playwright/test';
 
+test('presenta la portada y enlaza la actividad on-chain reciente', async ({ page }) => {
+  await page.goto('/');
+
+  await expect(page.getByRole('heading', { name: 'Noche Solar' })).toBeVisible();
+  await expect(page.getByText('Evento destacado · Próximamente')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Últimos eventos' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Explorar cartelera' })).toHaveAttribute(
+    'href',
+    '/events',
+  );
+});
+
 test('expone el marketplace y protege las herramientas de organizer', async ({ page }) => {
   await page.goto('/events');
 

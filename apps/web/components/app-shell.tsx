@@ -33,7 +33,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="product-shell">
       <header className="product-header">
-        <Link className="wordmark" href="/events" aria-label="Centlalia, inicio">
+        <Link className="wordmark" href="/" aria-label="Centlalia, inicio">
           <span aria-hidden="true">C</span>
           <strong>Centlalia</strong>
         </Link>
