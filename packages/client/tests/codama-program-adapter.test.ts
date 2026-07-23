@@ -5,17 +5,20 @@ import {
   CENTLALIA_TICKETING_PROGRAM_ADDRESS,
   getCreateEventInstructionDataDecoder,
 } from '../src/generated';
-import { CodamaProgramAdapter, type SolanaWalletBridge } from '../src';
+import { CodamaProgramAdapter, type RpcOverrides, type SolanaWalletBridge } from '../src';
 
 const walletAddress = address('11111111111111111111111111111111');
 const anotherAddress = address('SysvarRent111111111111111111111111111111111');
 const blockhash = '11111111111111111111111111111111' as Blockhash;
 
 function wallet() {
-  const send = vi.fn(async (transaction: Uint8Array): Promise<string> => {
-    void transaction;
-    return 'wallet-standard-signature';
-  });
+  const send = vi.fn(
+    async (transaction: Uint8Array, options?: { skipPreflight?: boolean }): Promise<string> => {
+      void options;
+      void transaction;
+      return 'wallet-standard-signature';
+    },
+  );
   return {
     bridge: {
       name: 'Wallet de prueba',
@@ -26,7 +29,7 @@ function wallet() {
   };
 }
 
-function readyAdapter(bridge: SolanaWalletBridge) {
+function readyAdapter(bridge: SolanaWalletBridge, overrides: Partial<RpcOverrides> = {}) {
   return new CodamaProgramAdapter({
     rpcUrl: 'https://api.devnet.solana.com',
     wallet: bridge,
@@ -34,6 +37,7 @@ function readyAdapter(bridge: SolanaWalletBridge) {
       getProgramAccount: async () => ({ executable: true }),
       getPlatformInitialized: async () => true,
       getLatestBlockhash: async () => ({ blockhash, lastValidBlockHeight: 10n }),
+      ...overrides,
     },
   });
 }
@@ -139,6 +143,46 @@ describe('CodamaProgramAdapter', () => {
     expect(currentWallet.send).toHaveBeenCalledOnce();
     expect(currentWallet.send.mock.calls[0]?.[0]).toBeInstanceOf(Uint8Array);
     expect(currentWallet.send.mock.calls[0]?.[0].byteLength).toBeGreaterThan(100);
+  });
+
+  it('propaga skipPreflight a Wallet Standard para registrar una falla on-chain', async () => {
+    const currentWallet = wallet();
+    const adapter = readyAdapter(currentWallet.bridge);
+    const instruction = await adapter.buildCreateEvent({ eventId: 12n, details });
+
+    await adapter.sendInstructions([instruction], { skipPreflight: true });
+
+    expect(currentWallet.send).toHaveBeenCalledWith(expect.any(Uint8Array), {
+      skipPreflight: true,
+    });
+  });
+
+  it('acepta solo la transaccion fallida con el custom error esperado', async () => {
+    const currentWallet = wallet();
+    const adapter = readyAdapter(currentWallet.bridge, {
+      getSignatureStatus: async () => ({
+        err: { InstructionError: [0, { Custom: 6036 }] },
+        confirmationStatus: 'confirmed',
+      }),
+    });
+
+    await expect(adapter.waitForCustomTransactionError('failed-signature', 6036, 1)).resolves.toBe(
+      undefined,
+    );
+    await expect(adapter.signatureFailedWithCustomError('failed-signature', 6036)).resolves.toBe(
+      true,
+    );
+  });
+
+  it('rechaza como critica una segunda transaccion que finaliza con exito', async () => {
+    const currentWallet = wallet();
+    const adapter = readyAdapter(currentWallet.bridge, {
+      getSignatureStatus: async () => ({ err: null, confirmationStatus: 'finalized' }),
+    });
+
+    await expect(
+      adapter.waitForCustomTransactionError('unexpected-success', 6036, 1),
+    ).rejects.toMatchObject({ code: 'TRANSACTION_UNEXPECTEDLY_SUCCEEDED' });
   });
 
   it('bloquea el envío antes de pedir firma cuando el programa no está desplegado', async () => {

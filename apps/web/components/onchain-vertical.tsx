@@ -31,6 +31,7 @@ interface VerticalProof {
   presentSignature?: string;
   consumeSignature?: string;
   duplicateRejected?: boolean;
+  duplicateSignature?: string;
 }
 
 type VerificationState =
@@ -138,6 +139,15 @@ async function verifyProof(adapter: CodamaProgramAdapter, candidate: VerticalPro
   );
   if (signatureResults.some((confirmed) => !confirmed)) {
     throw new Error('Una firma guardada no aparece confirmada en devnet.');
+  }
+  if (
+    candidate.duplicateSignature &&
+    !(await adapter.signatureFailedWithCustomError(
+      candidate.duplicateSignature,
+      generated.CENTLALIA_TICKETING_ERROR__INTENT_NOT_PENDING,
+    ))
+  ) {
+    throw new Error('La firma de doble uso no contiene el error esperado 6036.');
   }
 }
 
@@ -368,20 +378,24 @@ export function OnchainVertical() {
         coreAsset: parseAddress(proof.asset, 'Activo'),
         checkInIntent: parseAddress(proof.intent, 'Intent'),
       });
-      try {
+      if (duplicate) {
+        const signature = await adapter.sendInstructions([instruction], { skipPreflight: true });
+        await adapter.waitForCustomTransactionError(
+          signature,
+          generated.CENTLALIA_TICKETING_ERROR__INTENT_NOT_PENDING,
+        );
+        save({
+          ...proof,
+          duplicateRejected: true,
+          duplicateSignature: signature,
+        });
+      } else {
         const signature = await adapter.sendInstructions([instruction]);
-        if (duplicate) {
-          throw new Error('Fallo critico: el segundo check-in fue aceptado.');
-        }
         await adapter.waitForTicketStatus(
           parseAddress(proof.ticket, 'Ticket'),
           generated.TicketStatus.Used,
         );
         save({ ...proof, consumeSignature: signature });
-      } catch (error) {
-        if (!duplicate) throw error;
-        if (error instanceof Error && error.message.startsWith('Fallo critico')) throw error;
-        save({ ...proof, duplicateRejected: true });
       }
     });
   }
@@ -531,7 +545,7 @@ export function OnchainVertical() {
               !proof.consumeSignature ||
               !proofVerified ||
               Boolean(pending) ||
-              proof.duplicateRejected
+              Boolean(proof.duplicateSignature)
             }
             onClick={() => void consume(true)}
             type="button"
@@ -561,7 +575,12 @@ export function OnchainVertical() {
         ))}
         <div>
           <span>Doble uso</span>
-          <strong>{proof.duplicateRejected ? 'Rechazado' : 'Pendiente'}</strong>
+          <strong>{proof.duplicateSignature ? 'Rechazado · 6036' : 'Pendiente público'}</strong>
+          {proof.duplicateSignature ? (
+            <a href={explorer(proof.duplicateSignature, 'tx')} rel="noreferrer" target="_blank">
+              Transacción fallida
+            </a>
+          ) : null}
         </div>
       </div>
       <button

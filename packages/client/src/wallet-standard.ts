@@ -25,7 +25,10 @@ export interface WalletDescriptor {
 export interface SolanaWalletBridge {
   readonly name: string;
   readonly address: KitAddress;
-  signAndSendTransaction(transaction: Uint8Array): Promise<string>;
+  signAndSendTransaction(
+    transaction: Uint8Array,
+    options?: { skipPreflight?: boolean },
+  ): Promise<string>;
 }
 
 function isCompatibleWallet(wallet: RegisteredWallet): wallet is CompatibleWallet {
@@ -92,12 +95,15 @@ export async function connectWalletStandard(walletName: string): Promise<SolanaW
   return {
     name: wallet.name,
     address: walletAddress,
-    async signAndSendTransaction(transaction) {
+    async signAndSendTransaction(transaction, options) {
       const [output] = await wallet.features[SolanaSignAndSendTransaction].signAndSendTransaction({
         account,
         transaction,
         chain: SOLANA_DEVNET_CHAIN,
-        options: { preflightCommitment: 'confirmed' },
+        options: {
+          preflightCommitment: 'confirmed',
+          skipPreflight: options?.skipPreflight,
+        },
       });
       if (!output) {
         throw new GatewayError(

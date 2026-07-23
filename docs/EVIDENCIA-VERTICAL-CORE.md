@@ -1,6 +1,6 @@
 # Evidencia de la vertical MPL Core
 
-Fecha de corte: 2026-07-22
+Fecha de corte: 2026-07-23
 
 ## Objetivo de validación
 
@@ -23,28 +23,52 @@ El activo se crea por CPI desde `primary_purchase_core`. La cuenta del activo es
 
 ## Matriz de evidencia
 
-| Evidencia                           | Estado al corte                           | Gate para aprobar                      |
-| ----------------------------------- | ----------------------------------------- | -------------------------------------- |
-| Rust, fmt y Clippy                  | CI Linux verde                            | Aprobado                               |
-| IDL y cliente Codama                | Generados; 11 builders probados           | Aprobado                               |
-| Web Wallet Standard                 | Desplegada en producción                  | Pendiente recorrido con wallets reales |
-| Compra + creación Core atómica      | E2E SBF con programa Core oficial pasa    | Pendiente firma pública de usuario     |
-| Owner Core verificado en check-in   | Pasa en validator                         | Pendiente ticket en devnet             |
-| Segundo consumo                     | Error determinista en validator           | Pendiente rechazo público en devnet    |
-| Prevención de transferencia externa | TransferV1 directo rechazado en validator | Aprobado técnicamente                  |
-| Evidencia de usuarios               | Pendiente                                 | 5-10 sesiones según protocolo          |
+| Evidencia                           | Estado al corte                            | Gate para aprobar              |
+| ----------------------------------- | ------------------------------------------ | ------------------------------ |
+| Rust, fmt y Clippy                  | CI Linux verde                             | Aprobado                       |
+| IDL y cliente Codama                | Generados; 11 builders probados            | Aprobado                       |
+| Web Wallet Standard                 | Recorrido devnet con tres wallets completo | Aprobado técnicamente          |
+| Compra + creación Core atómica      | Firma pública y activo Core confirmados    | Aprobado técnicamente          |
+| Owner Core verificado en check-in   | Ticket, asset y holder coinciden en devnet | Aprobado técnicamente          |
+| Segundo consumo                     | Estado consumido; firma fallida pendiente  | Pendiente error público `6036` |
+| Prevención de transferencia externa | TransferV1 directo rechazado en validator  | Aprobado técnicamente          |
+| Evidencia de usuarios               | Pendiente                                  | 5-10 sesiones según protocolo  |
 
 ## Regla de comunicación
 
-CI SBF y upgrade devnet están completos. Hasta que el recorrido de tres wallets produzca firmas públicas, se permite decir “vertical MPL Core desplegada y pendiente de prueba con wallets reales”. No se permite decir “MVP transaccional validado”, “NFT adoptado por usuarios” o “usuarios lo necesitan”.
+CI SBF, upgrade devnet y un recorrido técnico con tres wallets están completos. Se permite decir “vertical MPL Core demostrada en devnet con firmas públicas”. No se permite decir “producto validado”, “NFT adoptado por usuarios” o “usuarios lo necesitan” hasta ejecutar el protocolo con participantes externos.
 
 ## Evidencia pública del corte
 
-- CI completa: [run 29909723805](https://github.com/MelenoiddCoding/centlalia-mvp/actions/runs/29909723805).
+- CI completa del adapter Core: [run 29909723805](https://github.com/MelenoiddCoding/centlalia-mvp/actions/runs/29909723805).
+- CI de verificación RPC de evidencia: [run 29976657498](https://github.com/MelenoiddCoding/centlalia-mvp/actions/runs/29976657498).
 - Upgrade del programa: `4Te91RqrWqK1Jtx9VxsAstNkjDj1wHZnH2D8V4iXLpabv9GpyEqchMpZK752MHzuPpKJXpebaoKc5cE3yCUAUjfV`.
 - `PlatformConfig` cambiado a `MplCore`: `3YtA1dbb5B3JG2aUFpzaxGC2scszyc8GZDU2wMgaowcdNP5Ay6sbJT7FC2LoWpFixg5aPXWciBxYaVV2gATMm1ko`.
-- Web de producción: [web-two-amber-35.vercel.app](https://web-two-amber-35.vercel.app), deployment `dpl_8JiJn9hJfG2V8sgCkBmfTAGchKSF`.
+- Web de producción: [web-two-amber-35.vercel.app](https://web-two-amber-35.vercel.app), deployment `dpl_3k9ttmygHzAPzFKTtHZ8coDrf9kS`.
 
-Estas firmas prueban despliegue y configuración. No prueban todavía creación de evento, compra, activo, presentación ni check-in en devnet.
+## Sesión técnica multiwallet
+
+La sesión del 22 de julio produjo tres identidades distintas:
+
+- organizer: `Ei8KxzsUPfXYWyd8xUwGf3hYuJEgyUg3XtqUgXjEweFf`;
+- holder: `HG2bCMMyQtBcKX9nGrGptieSmrEQtp9uoQd2T27pnM2V`;
+- staff: `BQvvfHGHYukcTzfMENBWp68fJizRCGbpNFXiRVk3K9AK`.
+
+Cuentas resultantes:
+
+- [Event `DQDQ...`](https://explorer.solana.com/address/DQDQkt988vHDe7tdSHj1Xtd8t8MZ1XmmdvZQ4wXdgTJi?cluster=devnet), publicado;
+- [Tier `CeWi...`](https://explorer.solana.com/address/CeWiLxgXLV4D2sJi6uQRe6aaVNxjD5Prsk3ki6xpWanm?cluster=devnet), supply 20 y sold 1;
+- [TicketRecord `FPQF...`](https://explorer.solana.com/address/FPQFhk4bxuMk9NcFrgCAuhhkwrX914rp3fnWXc9NQF6Y?cluster=devnet), owner holder y estado `Used`;
+- [MPL Core asset `AfwT...`](https://explorer.solana.com/address/AfwTJb9ok32dD2X6GzFJ7p3Vi1GPYfoGjMDkXisYWToG?cluster=devnet), poseído por el holder y owned por el programa Core;
+- [CheckInIntent `mC5u...`](https://explorer.solana.com/address/mC5uyHpa7627aDfRWES8sz1X3DkYoer9xoMP7kYJZSC?cluster=devnet), estado `Consumed` y `staff` correcto.
+
+Transacciones finalizadas:
+
+1. [Emisión, tier, publicación y staff](https://explorer.solana.com/tx/y9zz5BSvJ6wQdHjeMNcpPGarWHwkPAPS2hWFL6JPCCnHhzUSYPUiYvCbEqVKuXfcNZrQmzDDCQpYbd8Z4wVL7qH?cluster=devnet).
+2. [Compra y creación MPL Core](https://explorer.solana.com/tx/5wFJp5rAnAQKqRnQ184Gy6GimjyFmfymMFGT3csZeoNNhWsKGAeL6KrkynvN6EoBe1ok4f5vurf4e9DdvWonABq5?cluster=devnet).
+3. [Presentación firmada](https://explorer.solana.com/tx/YMmG2sXic4RJ4sPRQcMHofRH5M8mEYF1VnKsfC1p2GWmAPRg5eD6nhbsGGvMP9nXS1oAJan4SaMYB1hXWsEEUXU?cluster=devnet).
+4. [Consumo por staff](https://explorer.solana.com/tx/3aZAhv6RF9iiZCLWLE27CAgCxyEWFMCPQdxExckq7C8rFnfqKaGiS6RhYpJFw6UAazQgn3SavyYdhpg8BuvrziKY?cluster=devnet).
+
+El intento duplicado de esa sesión fue detenido en preflight y no produjo firma pública. La web actualizada envía el siguiente intento con `skipPreflight` y solo lo registra si el RPC confirma exactamente `IntentNotPending (6036)`; un rechazo de wallet, timeout u otro error ya no cuenta como evidencia.
 
 Después del gate técnico se observarán tiempos, errores, comprensión de wallet y valor percibido. Si los usuarios no valoran propiedad verificable o política compartida frente a QR/lista privada, la hipótesis Solana debe refutarse o reducirse.

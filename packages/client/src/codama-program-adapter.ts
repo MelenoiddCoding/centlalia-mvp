@@ -68,6 +68,10 @@ export interface RpcOverrides {
     blockhash: Blockhash;
     lastValidBlockHeight: bigint;
   }>;
+  getSignatureStatus?: (signature: string) => Promise<{
+    err: unknown;
+    confirmationStatus: 'processed' | 'confirmed' | 'finalized' | null;
+  } | null>;
 }
 
 export interface CodamaProgramAdapterOptions {
@@ -114,6 +118,24 @@ function instructionSigner(wallet: SolanaWalletBridge): TransactionSigner {
       );
     },
   });
+}
+
+function containsCustomError(value: unknown, expectedCode: number): boolean {
+  if (Array.isArray(value)) {
+    return value.some((item) => containsCustomError(item, expectedCode));
+  }
+  if (!value || typeof value !== 'object') return false;
+
+  const record = value as Record<string, unknown>;
+  if (record.Custom === expectedCode) return true;
+  if (
+    record.__kind === 'Custom' &&
+    Array.isArray(record.fields) &&
+    record.fields.includes(expectedCode)
+  ) {
+    return true;
+  }
+  return Object.values(record).some((item) => containsCustomError(item, expectedCode));
 }
 
 export class CodamaProgramAdapter {
@@ -241,14 +263,55 @@ export class CodamaProgramAdapter {
   }
 
   async signatureConfirmed(value: string): Promise<boolean> {
-    const response = await this.rpc
-      .getSignatureStatuses([value as Signature], { searchTransactionHistory: true })
-      .send();
-    const status = response.value[0];
+    const status = await this.getSignatureStatus(value);
     return (
       status !== null &&
       status.err === null &&
       (status.confirmationStatus === 'confirmed' || status.confirmationStatus === 'finalized')
+    );
+  }
+
+  private async getSignatureStatus(value: string) {
+    if (this.overrides?.getSignatureStatus) return this.overrides.getSignatureStatus(value);
+    const response = await this.rpc
+      .getSignatureStatuses([value as Signature], { searchTransactionHistory: true })
+      .send();
+    return response.value[0];
+  }
+
+  async signatureFailedWithCustomError(value: string, expectedCode: number): Promise<boolean> {
+    const status = await this.getSignatureStatus(value);
+    return status !== null && containsCustomError(status.err, expectedCode);
+  }
+
+  async waitForCustomTransactionError(
+    value: string,
+    expectedCode: number,
+    attempts = 30,
+  ): Promise<void> {
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      const status = await this.getSignatureStatus(value);
+      if (status?.err) {
+        if (containsCustomError(status.err, expectedCode)) return;
+        throw new GatewayError(
+          'UNEXPECTED_TRANSACTION_ERROR',
+          `La transaccion fallo, pero no con el error esperado ${expectedCode}.`,
+        );
+      }
+      if (
+        status?.err === null &&
+        (status.confirmationStatus === 'confirmed' || status.confirmationStatus === 'finalized')
+      ) {
+        throw new GatewayError(
+          'TRANSACTION_UNEXPECTEDLY_SUCCEEDED',
+          'Fallo critico: el segundo check-in fue aceptado.',
+        );
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    throw new GatewayError(
+      'CONFIRMATION_TIMEOUT',
+      'La transaccion fallida fue enviada, pero su error no alcanzo confirmacion.',
     );
   }
 
@@ -367,7 +430,7 @@ export class CodamaProgramAdapter {
 
   async sendInstructions(
     instructions: readonly Instruction[],
-    options: { allowUninitializedPlatform?: boolean } = {},
+    options: { allowUninitializedPlatform?: boolean; skipPreflight?: boolean } = {},
   ): Promise<string> {
     if (instructions.length === 0) {
       throw new GatewayError('EMPTY_TRANSACTION', 'La transacción no contiene instrucciones.');
@@ -392,6 +455,8 @@ export class CodamaProgramAdapter {
     );
     const transaction = compileTransaction(message);
     const wireTransaction = new Uint8Array(getTransactionEncoder().encode(transaction));
-    return wallet.signAndSendTransaction(wireTransaction);
+    return wallet.signAndSendTransaction(wireTransaction, {
+      skipPreflight: options.skipPreflight,
+    });
   }
 }
