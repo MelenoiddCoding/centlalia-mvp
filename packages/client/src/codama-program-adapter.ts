@@ -10,13 +10,17 @@ import {
   type Address,
   type Blockhash,
   type Instruction,
+  type Signature,
   type TransactionSigner,
 } from '@solana/kit';
 import {
   CENTLALIA_TICKETING_PROGRAM_ADDRESS,
+  fetchMaybeCheckInIntent,
   fetchMaybeEvent,
   fetchMaybePlatformConfig,
+  fetchMaybeStaffAuthorization,
   fetchMaybeTicketRecord,
+  fetchMaybeTier,
   findPlatformConfigPda,
   getAddTierInstructionAsync,
   getAuthorizeStaffInstructionAsync,
@@ -206,6 +210,16 @@ export class CodamaProgramAdapter {
     return fetchMaybeEvent(this.rpc, event, { commitment: 'confirmed' });
   }
 
+  async fetchTier(tier: Address) {
+    return fetchMaybeTier(this.rpc, tier, { commitment: 'confirmed' });
+  }
+
+  async fetchStaffAuthorization(staffAuthorization: Address) {
+    return fetchMaybeStaffAuthorization(this.rpc, staffAuthorization, {
+      commitment: 'confirmed',
+    });
+  }
+
   async fetchPlatformConfig() {
     const [platformConfig] = await findPlatformConfigPda();
     return fetchMaybePlatformConfig(this.rpc, platformConfig, { commitment: 'confirmed' });
@@ -213,6 +227,29 @@ export class CodamaProgramAdapter {
 
   async fetchTicketRecord(ticketRecord: Address) {
     return fetchMaybeTicketRecord(this.rpc, ticketRecord, { commitment: 'confirmed' });
+  }
+
+  async fetchCheckInIntent(checkInIntent: Address) {
+    return fetchMaybeCheckInIntent(this.rpc, checkInIntent, { commitment: 'confirmed' });
+  }
+
+  async accountExists(account: Address): Promise<boolean> {
+    const response = await this.rpc
+      .getAccountInfo(account, { commitment: 'confirmed', encoding: 'base64' })
+      .send();
+    return response.value !== null;
+  }
+
+  async signatureConfirmed(value: string): Promise<boolean> {
+    const response = await this.rpc
+      .getSignatureStatuses([value as Signature], { searchTransactionHistory: true })
+      .send();
+    const status = response.value[0];
+    return (
+      status !== null &&
+      status.err === null &&
+      (status.confirmationStatus === 'confirmed' || status.confirmationStatus === 'finalized')
+    );
   }
 
   async waitForAccount(account: Address, attempts = 20): Promise<void> {

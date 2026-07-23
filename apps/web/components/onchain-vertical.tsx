@@ -33,6 +33,12 @@ interface VerticalProof {
   duplicateRejected?: boolean;
 }
 
+type VerificationState =
+  | { status: 'idle'; detail: string }
+  | { status: 'checking'; detail: string }
+  | { status: 'verified'; detail: string }
+  | { status: 'invalid'; detail: string };
+
 function explorer(value: string, kind: 'address' | 'tx' = 'address') {
   return `https://explorer.solana.com/${kind}/${value}?cluster=devnet`;
 }
@@ -49,6 +55,92 @@ function short(value?: string) {
   return value ? `${value.slice(0, 5)}...${value.slice(-5)}` : 'Pendiente';
 }
 
+async function verifyProof(adapter: CodamaProgramAdapter, candidate: VerticalProof): Promise<void> {
+  if (!candidate.event || !candidate.tier || !candidate.organizer || !candidate.staff) {
+    throw new Error('La evidencia de emision esta incompleta.');
+  }
+  const event = parseAddress(candidate.event, 'Evento');
+  const tier = parseAddress(candidate.tier, 'Tier');
+  const organizer = parseAddress(candidate.organizer, 'Organizador');
+  const staff = parseAddress(candidate.staff, 'Staff');
+  const [staffAuthorization] = await generated.findStaffAuthorizationPda({ event, staff });
+  const [eventAccount, tierAccount, staffAccount] = await Promise.all([
+    adapter.fetchEvent(event),
+    adapter.fetchTier(tier),
+    adapter.fetchStaffAuthorization(staffAuthorization),
+  ]);
+  if (!eventAccount.exists || eventAccount.data.organizer !== organizer) {
+    throw new Error('El Event guardado no pertenece al organizer esperado.');
+  }
+  if (!tierAccount.exists || tierAccount.data.event !== event) {
+    throw new Error('El Tier guardado no pertenece al Event.');
+  }
+  if (
+    !staffAccount.exists ||
+    staffAccount.data.event !== event ||
+    staffAccount.data.staff !== staff ||
+    !staffAccount.data.active
+  ) {
+    throw new Error('La autorizacion de staff no existe o no esta activa.');
+  }
+
+  if (candidate.ticket || candidate.asset || candidate.holder) {
+    if (!candidate.ticket || !candidate.asset || !candidate.holder) {
+      throw new Error('La evidencia de compra esta incompleta.');
+    }
+    const ticket = parseAddress(candidate.ticket, 'Ticket');
+    const asset = parseAddress(candidate.asset, 'Activo');
+    const holder = parseAddress(candidate.holder, 'Holder');
+    const [ticketAccount, assetExists] = await Promise.all([
+      adapter.fetchTicketRecord(ticket),
+      adapter.accountExists(asset),
+    ]);
+    if (
+      !ticketAccount.exists ||
+      ticketAccount.data.event !== event ||
+      ticketAccount.data.owner !== holder ||
+      ticketAccount.data.assetId !== asset ||
+      ticketAccount.data.assetStandard !== generated.AssetStandard.MplCore ||
+      !assetExists
+    ) {
+      throw new Error('TicketRecord y activo Core no conservan la relacion esperada.');
+    }
+
+    if (candidate.intent) {
+      const intent = parseAddress(candidate.intent, 'Intent');
+      const intentAccount = await adapter.fetchCheckInIntent(intent);
+      if (
+        !intentAccount.exists ||
+        intentAccount.data.event !== event ||
+        intentAccount.data.ticket !== ticket ||
+        intentAccount.data.holder !== holder
+      ) {
+        throw new Error('El CheckInIntent no pertenece al ticket y holder esperados.');
+      }
+      if (
+        candidate.consumeSignature &&
+        (ticketAccount.data.status !== generated.TicketStatus.Used ||
+          intentAccount.data.status !== generated.CheckInIntentStatus.Consumed)
+      ) {
+        throw new Error('La evidencia indica consumo, pero las cuentas aun no estan consumidas.');
+      }
+    }
+  }
+
+  const signatures = [
+    candidate.setupSignature,
+    candidate.purchaseSignature,
+    candidate.presentSignature,
+    candidate.consumeSignature,
+  ].filter((value): value is string => Boolean(value));
+  const signatureResults = await Promise.all(
+    signatures.map((value) => adapter.signatureConfirmed(value)),
+  );
+  if (signatureResults.some((confirmed) => !confirmed)) {
+    throw new Error('Una firma guardada no aparece confirmada en devnet.');
+  }
+}
+
 export function OnchainVertical() {
   const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? DEVNET_RPC;
   const [adapter] = useState(() => new CodamaProgramAdapter({ rpcUrl }));
@@ -57,6 +149,10 @@ export function OnchainVertical() {
   const [wallet, setWallet] = useState<SolanaWalletBridge>();
   const [staffInput, setStaffInput] = useState('');
   const [proof, setProof] = useState<VerticalProof>({});
+  const [verification, setVerification] = useState<VerificationState>({
+    status: 'idle',
+    detail: 'Crea una sesion para verificar sus cuentas.',
+  });
   const [pending, setPending] = useState<string>();
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string }>();
 
@@ -82,6 +178,40 @@ export function OnchainVertical() {
       unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!proof.event) return;
+
+    let active = true;
+    queueMicrotask(() => {
+      if (active) {
+        setVerification({
+          status: 'checking',
+          detail: 'Contrastando cuentas y firmas con devnet...',
+        });
+      }
+    });
+    void verifyProof(adapter, proof)
+      .then(() => {
+        if (active) {
+          setVerification({
+            status: 'verified',
+            detail: 'Cuentas, relaciones y firmas confirmadas por RPC.',
+          });
+        }
+      })
+      .catch((error) => {
+        if (active) {
+          setVerification({
+            status: 'invalid',
+            detail: error instanceof Error ? error.message : 'La evidencia no coincide con devnet.',
+          });
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [adapter, proof]);
 
   function save(next: VerticalProof) {
     setProof(next);
@@ -259,11 +389,13 @@ export function OnchainVertical() {
   function reset() {
     window.localStorage.removeItem(STORAGE_KEY);
     setProof({});
+    setVerification({ status: 'idle', detail: 'Crea una sesion para verificar sus cuentas.' });
     setStaffInput('');
     setMessage(undefined);
   }
 
   const selected = walletName || wallets[0]?.name || '';
+  const proofVerified = verification.status === 'verified';
   const steps = [
     ['Emision', proof.event, proof.setupSignature],
     ['Compra + Core', proof.asset, proof.purchaseSignature],
@@ -321,6 +453,13 @@ export function OnchainVertical() {
         </p>
       ) : null}
 
+      <p
+        className={`vertical-message ${verification.status === 'invalid' ? 'error' : 'ok'}`}
+        role={verification.status === 'invalid' ? 'alert' : 'status'}
+      >
+        Evidencia RPC: {verification.detail}
+      </p>
+
       <ol className="vertical-steps">
         <li>
           <span>01 · Issuer</span>
@@ -346,7 +485,9 @@ export function OnchainVertical() {
           <strong>Comprar activo Core</strong>
           <p>Cambia a una tercera wallet. Precio de prueba: 0.01 SOL devnet.</p>
           <button
-            disabled={!wallet || Boolean(pending) || !proof.event || Boolean(proof.asset)}
+            disabled={
+              !wallet || Boolean(pending) || !proof.event || !proofVerified || Boolean(proof.asset)
+            }
             onClick={() => void purchase()}
             type="button"
           >
@@ -358,7 +499,9 @@ export function OnchainVertical() {
           <strong>Presentar acceso</strong>
           <p>La wallet holder firma un intent temporal de cuatro minutos.</p>
           <button
-            disabled={!wallet || Boolean(pending) || !proof.asset || Boolean(proof.intent)}
+            disabled={
+              !wallet || Boolean(pending) || !proof.asset || !proofVerified || Boolean(proof.intent)
+            }
             onClick={() => void present()}
             type="button"
           >
@@ -371,7 +514,11 @@ export function OnchainVertical() {
           <p>Cambia a staff, consume y repite para documentar el rechazo.</p>
           <button
             disabled={
-              !wallet || Boolean(pending) || !proof.intent || Boolean(proof.consumeSignature)
+              !wallet ||
+              Boolean(pending) ||
+              !proof.intent ||
+              !proofVerified ||
+              Boolean(proof.consumeSignature)
             }
             onClick={() => void consume()}
             type="button"
@@ -380,7 +527,12 @@ export function OnchainVertical() {
           </button>
           <button
             className="text-button dark-text"
-            disabled={!proof.consumeSignature || Boolean(pending) || proof.duplicateRejected}
+            disabled={
+              !proof.consumeSignature ||
+              !proofVerified ||
+              Boolean(pending) ||
+              proof.duplicateRejected
+            }
             onClick={() => void consume(true)}
             type="button"
           >

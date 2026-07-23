@@ -84,6 +84,7 @@ pnpm client:generate
 
 - [Validación del sistema](docs/VALIDACION-SISTEMA.md)
 - [Evidencia de la vertical MPL Core](docs/EVIDENCIA-VERTICAL-CORE.md)
+- [Cuentas on-chain y autoridades](docs/CUENTAS-ONCHAIN.md)
 - [Trazabilidad Discord y WayLearn](docs/TRAZABILIDAD.md)
 - [Arquitectura técnica](docs/ARQUITECTURA.md)
 - [Protocolo de validación](docs/PROTOCOLO-VALIDACION.md)

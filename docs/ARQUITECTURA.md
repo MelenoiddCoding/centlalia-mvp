@@ -11,9 +11,12 @@ Red de incubacion: Solana devnet
 - El programa Anchor conserva `ManagedAsset` y añade creación/validación MPL Core por CPI para compra y check-in; 25 pruebas Rust, Clippy y formato pasan.
 - `packages/client` contiene demo, IDL/Codama, Wallet Standard y un adapter con once operaciones de la vertical que serializa transacciones v0.
 - `apps/web` separa la mesa demo de una consola devnet que envía, espera cuentas confirmadas y enlaza evidencia en Explorer.
-- El program ID `6KVngKJVYYbqfeXxzXdnaZzmKwo58iin8LmiMyZjgpbu` está desplegado con loader upgradeable en devnet; `PlatformConfig` está inicializado con `ManagedAsset` y fee 0%.
+- El program ID `6KVngKJVYYbqfeXxzXdnaZzmKwo58iin8LmiMyZjgpbu` está desplegado con loader upgradeable en devnet; `PlatformConfig` está inicializado con `MplCore` y fee 0%.
 - El harness MPL Core clona el programa oficial en validator; build SBF, compra, verificación de owner, rechazo de transferencia y check-in pasaron en CI `29909723805`.
 - El programa y `PlatformConfig=MplCore` están actualizados en devnet. Bubblegum V2 y DAS no participan en la primera vertical; la prueba pública con tres wallets reales sigue pendiente.
+
+El inventario de seeds, owners, payers y autoridades se mantiene en
+[`CUENTAS-ONCHAIN.md`](CUENTAS-ONCHAIN.md).
 
 ## Principios
 

@@ -20,8 +20,8 @@ Resultado por dimension:
 | Propuesta de valor      | Coherente, no confirmada         | Flujo definido; utilidad percibida pendiente                     |
 | Modelo de negocio       | Hipotesis razonable              | Piloto gestionado definido; disposicion de pago pendiente        |
 | Arquitectura greenfield | Implementada, runtime verificado | Programa, IDL/Codama, web, SBF y harness reproducible            |
-| Seguridad y propiedad   | Corregida para `ManagedAsset`    | Unit, SBF y validator pasan; integración externa pendiente       |
-| MVP funcional           | Demo más backend devnet          | Programa inicializado; firma/envío desde UI todavía pendientes   |
+| Seguridad y propiedad   | Vertical MPL Core implementada   | CPI, owner Core y bloqueo de bypass pasan en validator           |
+| MVP funcional           | Vertical devnet desplegada       | Firma/envío desde UI existen; recorrido público aún pendiente    |
 | Validacion WayLearn     | Parcial                          | Documentos existen; entregas externas, usuarios y MVP pendientes |
 | Fondeo                  | Fuera del objetivo inmediato     | El programa actualmente no cuenta con grant para sus proyectos   |
 
@@ -46,7 +46,7 @@ El flujo historico de regalo actualizaba un propietario reconocido sin transferi
 
 Correccion obligatoria: regalos y reventas deben transferir el asset y actualizar `TicketRecord` en una operacion coherente. Si la tecnologia de asset elegida no permite demostrar esta invariancia, no se acepta para el MVP.
 
-Estado: `ManagedAsset` y `TicketRecord` cambian atómicamente en regalo/reventa y las pruebas unitarias del adapter pasan. Una CPI NFT/cNFT real y su evidencia SBF/devnet siguen pendientes.
+Estado: la compra MPL Core crea activo y `TicketRecord` atómicamente por CPI. Owner, asset id y update authority se verifican durante check-in; la prueba local con el programa Core oficial pasa. Regalo y reventa Core quedan fuera de la primera vertical y no deben confundirse con sus rutas Managed.
 
 #### V-02. El check-in no demostraba posesion de la wallet
 
@@ -72,7 +72,7 @@ La autoridad del arbol compartido estaba ligada al registro de un organizador, a
 
 Correccion: usar un PDA de plataforma como autoridad unica y separar la autorizacion del organizador a nivel de `Event`.
 
-Estado: el MVP actual no crea Merkle tree y usa una autoridad PDA de plataforma para `ManagedAsset`. Si se incorpora Bubblegum/Core, la prueba CPI multi-organizador vuelve a ser bloqueante.
+Estado: el MVP no crea Merkle tree. MPL Core usa una autoridad PDA de plataforma y separa la autorización de cada organizer mediante `Event`; el harness comprueba el CPI y el rechazo de transferencia directa. Bubblegum exigiría reabrir la prueba multi-organizador.
 
 #### V-05. Regalía y limite de reventa compartian una semantica
 
