@@ -1225,6 +1225,25 @@ code {
   color: #9a2d1f;
 }
 
+.vertical-session-reset {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(14, 48, 36, 0.24);
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.vertical-session-reset p {
+  margin: 0.25rem 0 0;
+}
+
+.vertical-session-reset button {
+  flex: 0 0 auto;
+}
+
 .vertical-steps {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1319,6 +1338,11 @@ code {
 }
 
 @media (max-width: 640px) {
+  .vertical-session-reset {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .vertical-intro,
   .vertical-steps,
   .vertical-proof {

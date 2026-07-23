@@ -474,6 +474,23 @@ export function OnchainVertical() {
         Evidencia RPC: {verification.detail}
       </p>
 
+      {proof.event ? (
+        <div className="vertical-session-reset">
+          <div>
+            <strong>Esta sesión ya tiene un evento.</strong>
+            <p>Inicia otra sesión para crear un evento nuevo. Las cuentas on-chain permanecen.</p>
+          </div>
+          <button
+            className="secondary-action"
+            disabled={Boolean(pending)}
+            onClick={reset}
+            type="button"
+          >
+            Iniciar nueva sesión
+          </button>
+        </div>
+      ) : null}
+
       <ol className="vertical-steps">
         <li>
           <span>01 · Issuer</span>
@@ -583,14 +600,6 @@ export function OnchainVertical() {
           ) : null}
         </div>
       </div>
-      <button
-        className="text-button dark-text"
-        disabled={Boolean(pending)}
-        onClick={reset}
-        type="button"
-      >
-        Limpiar evidencia local
-      </button>
     </section>
   );
 }
