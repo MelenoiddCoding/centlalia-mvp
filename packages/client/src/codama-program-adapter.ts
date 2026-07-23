@@ -15,6 +15,8 @@ import {
 } from '@solana/kit';
 import {
   CENTLALIA_TICKETING_PROGRAM_ADDRESS,
+  fetchAllMaybeEvent,
+  fetchAllMaybeTier,
   fetchMaybeCheckInIntent,
   fetchMaybeEvent,
   fetchMaybePlatformConfig,
@@ -91,6 +93,9 @@ export type ConsumeCheckInOperation = Omit<ConsumeCheckInAsyncInput, 'staff'>;
 export type PrimaryPurchaseCoreOperation = Omit<PrimaryPurchaseCoreAsyncInput, 'buyer'>;
 export type PresentCheckInCoreOperation = Omit<PresentCheckInCoreAsyncInput, 'holder'>;
 export type ConsumeCheckInCoreOperation = Omit<ConsumeCheckInCoreAsyncInput, 'staff'>;
+
+const EVENT_ACCOUNT_SIZE = 443n;
+const TIER_ACCOUNT_SIZE = 120n;
 
 function validatedRpcUrl(rpcUrl: string): string {
   try {
@@ -230,6 +235,31 @@ export class CodamaProgramAdapter {
 
   async fetchEvent(event: Address) {
     return fetchMaybeEvent(this.rpc, event, { commitment: 'confirmed' });
+  }
+
+  private async getProgramAccountAddresses(dataSize: bigint): Promise<Address[]> {
+    const accounts = await this.rpc
+      .getProgramAccounts(this.programAddress, {
+        commitment: 'confirmed',
+        encoding: 'base64',
+        filters: [{ dataSize }],
+      })
+      .send();
+    return accounts.map((account) => account.pubkey);
+  }
+
+  async listEvents() {
+    const addresses = await this.getProgramAccountAddresses(EVENT_ACCOUNT_SIZE);
+    if (addresses.length === 0) return [];
+    const accounts = await fetchAllMaybeEvent(this.rpc, addresses, { commitment: 'confirmed' });
+    return accounts.filter((account) => account.exists);
+  }
+
+  async listTiers() {
+    const addresses = await this.getProgramAccountAddresses(TIER_ACCOUNT_SIZE);
+    if (addresses.length === 0) return [];
+    const accounts = await fetchAllMaybeTier(this.rpc, addresses, { commitment: 'confirmed' });
+    return accounts.filter((account) => account.exists);
   }
 
   async fetchTier(tier: Address) {

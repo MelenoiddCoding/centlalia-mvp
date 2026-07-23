@@ -1,10 +1,5 @@
-import { DemoWorkspace } from '@/components/demo-workspace';
-import { GatewayProvider } from '@/providers/gateway-provider';
+import { redirect } from 'next/navigation';
 
 export default function Home() {
-  return (
-    <GatewayProvider>
-      <DemoWorkspace />
-    </GatewayProvider>
-  );
+  redirect('/events');
 }

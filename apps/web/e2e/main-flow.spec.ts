@@ -1,7 +1,37 @@
 import { expect, test } from '@playwright/test';
 
+test('expone el marketplace y protege las herramientas de organizer', async ({ page }) => {
+  await page.goto('/events');
+
+  await expect(
+    page.getByRole('heading', { name: 'Eventos que se pueden verificar.' }),
+  ).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Navegación principal' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Marketplace' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+
+  await page.getByRole('link', { name: 'Crear evento' }).click();
+  await expect(page).toHaveURL(/\/organizer\/events\/new$/);
+  await expect(page.getByRole('link', { name: 'Crear evento' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  await expect(page.getByRole('link', { name: 'Mis eventos' })).not.toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  await expect(page.getByRole('heading', { name: 'Crear evento' })).toBeVisible();
+  await expect(page.getByText('Conecta la wallet organizer para continuar.')).toBeVisible();
+
+  await page.getByRole('link', { name: 'Mis eventos' }).click();
+  await expect(page.getByRole('heading', { name: 'Mis eventos' })).toBeVisible();
+  await expect(page.getByText('Conecta la wallet organizer para ver sus eventos.')).toBeVisible();
+});
+
 test('crea, publica, compra y rechaza un segundo check-in', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/demo');
   await expect(page.getByRole('link', { name: 'Centlalia, inicio' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Crear borrador' }).click();
@@ -28,7 +58,7 @@ test('permite iniciar otra sesion sin borrar cuentas on-chain', async ({ page })
       JSON.stringify({ event: 'sesion-anterior' }),
     );
   });
-  await page.goto('/');
+  await page.goto('/validation');
 
   const newSession = page.getByRole('button', { name: 'Iniciar nueva sesión' });
   await expect(newSession).toBeVisible();
