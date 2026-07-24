@@ -9,6 +9,7 @@ import {
   type WalletDescriptor,
 } from '@centlalia/client';
 import { useCallback, createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { describeSolanaError } from '@/lib/solana-error';
 
 const DEVNET_RPC = 'https://api.devnet.solana.com';
 
@@ -66,7 +67,7 @@ export function SolanaAppProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       setNotice({
         kind: 'error',
-        text: error instanceof Error ? error.message : 'No fue posible leer Solana devnet.',
+        text: describeSolanaError(error, 'No fue posible leer Solana devnet.'),
       });
     } finally {
       setLoading(false);
@@ -99,7 +100,7 @@ export function SolanaAppProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       setNotice({
         kind: 'error',
-        text: error instanceof Error ? error.message : 'No fue posible conectar la wallet.',
+        text: describeSolanaError(error, 'No fue posible conectar la wallet.'),
       });
     } finally {
       setPending(undefined);
@@ -123,7 +124,7 @@ export function SolanaAppProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       setNotice({
         kind: 'error',
-        text: error instanceof Error ? error.message : 'La operación fue rechazada.',
+        text: describeSolanaError(error, 'La operación fue rechazada.'),
       });
       return undefined;
     } finally {

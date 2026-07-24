@@ -42,9 +42,20 @@ export function MyTicketsPage() {
   const [payload, setPayload] = useState<CheckInPayload>();
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [dasAssets, setDasAssets] = useState<Map<string, DasAsset>>(new Map());
+  const [currentTimestamp, setCurrentTimestamp] = useState(() =>
+    Math.floor(timestampNow() / 1_000),
+  );
   const ownedTickets = wallet
     ? tickets.filter((ticket) => ticket.data.owner === wallet.address)
     : [];
+
+  useEffect(() => {
+    const timer = window.setInterval(
+      () => setCurrentTimestamp(Math.floor(timestampNow() / 1_000)),
+      30_000,
+    );
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (!wallet || loading) return;
@@ -97,13 +108,37 @@ export function MyTicketsPage() {
     if (!wallet) return;
     const ticket = ownedTickets.find((item) => item.address === ticketAddress);
     if (!ticket) return;
+    const event = events.find((item) => item.address === ticket.data.event);
     const intentNonce = ticket.data.nextIntentNonce;
-    const expiresAt = BigInt(Math.floor(timestampNow() / 1_000) + 240);
     const [checkInIntent] = await generated.findCheckInIntentPda({
       ticketRecord: ticket.address,
       intentNonce,
     });
+    let expiresAt = 0n;
     const signature = await execute('Presentación de acceso', async () => {
+      const now = BigInt(Math.floor(timestampNow() / 1_000));
+      if (!event) {
+        throw new Error(
+          'No fue posible leer el evento de este boleto. Actualiza e inténtalo de nuevo.',
+        );
+      }
+      if (ticket.data.status !== generated.TicketStatus.Active) {
+        throw new Error('El boleto ya no está activo y no puede presentarse.');
+      }
+      if (ticket.data.activeIntent.__option === 'Some') {
+        throw new Error('Este boleto ya tiene una presentación pendiente.');
+      }
+      if (now < event.data.checkInStartAt) {
+        throw new Error(`El check-in abre ${formatDate(event.data.checkInStartAt)}.`);
+      }
+      if (now >= event.data.checkInEndAt) {
+        throw new Error(
+          `El check-in cerró ${formatDate(event.data.checkInEndAt)}. Usa un evento con una ventana vigente.`,
+        );
+      }
+      const requestedExpiry = now + 240n;
+      expiresAt =
+        requestedExpiry < event.data.checkInEndAt ? requestedExpiry : event.data.checkInEndAt;
       const instruction = await adapter.buildPresentCheckInCore({
         event: ticket.data.event,
         ticketRecord: ticket.address,
@@ -115,7 +150,7 @@ export function MyTicketsPage() {
       await adapter.waitForAccount(checkInIntent);
       return result;
     });
-    if (!signature) return;
+    if (!signature || expiresAt === 0n) return;
 
     const nextPayload: CheckInPayload = {
       kind: 'centlalia-check-in',
@@ -175,6 +210,18 @@ export function MyTicketsPage() {
           const event = events.find((item) => item.address === ticket.data.event);
           const tier = tiers.find((item) => item.address === ticket.data.tier);
           const dasAsset = dasAssets.get(ticket.data.assetId);
+          const now = BigInt(currentTimestamp);
+          const checkInNotStarted = event ? now < event.data.checkInStartAt : false;
+          const checkInEnded = event ? now >= event.data.checkInEndAt : false;
+          const checkInOpen = event ? !checkInNotStarted && !checkInEnded : false;
+          const buttonLabel =
+            ticket.data.activeIntent.__option === 'Some'
+              ? 'Intent pendiente'
+              : checkInNotStarted
+                ? 'Check-in aún cerrado'
+                : checkInEnded
+                  ? 'Check-in finalizado'
+                  : 'Presentar acceso';
           return (
             <article key={ticket.address}>
               <div className="ticket-stub" aria-hidden="true">
@@ -192,6 +239,12 @@ export function MyTicketsPage() {
                   {tier?.data.name ?? 'Acceso'} · {formatSol(ticket.data.originalPriceLamports)}
                 </p>
                 {event ? <time>{formatDate(event.data.startsAt)}</time> : null}
+                {event ? (
+                  <p>
+                    Check-in: {formatDate(event.data.checkInStartAt)} –{' '}
+                    {formatDate(event.data.checkInEndAt)}
+                  </p>
+                ) : null}
                 <dl>
                   <div>
                     <dt>Core asset</dt>
@@ -219,14 +272,13 @@ export function MyTicketsPage() {
                   disabled={
                     ticket.data.status !== generated.TicketStatus.Active ||
                     ticket.data.activeIntent.__option === 'Some' ||
+                    !checkInOpen ||
                     Boolean(pending)
                   }
                   onClick={() => void present(ticket.address)}
                   type="button"
                 >
-                  {ticket.data.activeIntent.__option === 'Some'
-                    ? 'Intent pendiente'
-                    : 'Presentar acceso'}
+                  {buttonLabel}
                 </button>
               </div>
             </article>
