@@ -14,6 +14,7 @@ const DEVNET_RPC = 'https://api.devnet.solana.com';
 
 export type CatalogEvent = Awaited<ReturnType<CodamaProgramAdapter['listEvents']>>[number];
 export type CatalogTier = Awaited<ReturnType<CodamaProgramAdapter['listTiers']>>[number];
+export type CatalogTicket = Awaited<ReturnType<CodamaProgramAdapter['listTicketRecords']>>[number];
 
 interface AppNotice {
   kind: 'success' | 'error';
@@ -25,6 +26,7 @@ interface SolanaAppContextValue {
   adapter: CodamaProgramAdapter;
   events: CatalogEvent[];
   tiers: CatalogTier[];
+  tickets: CatalogTicket[];
   loading: boolean;
   pending?: string;
   notice?: AppNotice;
@@ -43,6 +45,7 @@ export function SolanaAppProvider({ children }: { children: ReactNode }) {
   const [adapter] = useState(() => new CodamaProgramAdapter({ rpcUrl }));
   const [events, setEvents] = useState<CatalogEvent[]>([]);
   const [tiers, setTiers] = useState<CatalogTier[]>([]);
+  const [tickets, setTickets] = useState<CatalogTicket[]>([]);
   const [wallets, setWallets] = useState<WalletDescriptor[]>([]);
   const [wallet, setWallet] = useState<SolanaWalletBridge>();
   const [loading, setLoading] = useState(true);
@@ -52,12 +55,14 @@ export function SolanaAppProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [nextEvents, nextTiers] = await Promise.all([
+      const [nextEvents, nextTiers, nextTickets] = await Promise.all([
         adapter.listEvents(),
         adapter.listTiers(),
+        adapter.listTicketRecords(),
       ]);
       setEvents(nextEvents.sort((a, b) => Number(b.data.startsAt - a.data.startsAt)));
       setTiers(nextTiers);
+      setTickets(nextTickets.sort((a, b) => Number(b.data.createdAt - a.data.createdAt)));
     } catch (error) {
       setNotice({
         kind: 'error',
@@ -132,6 +137,7 @@ export function SolanaAppProvider({ children }: { children: ReactNode }) {
         adapter,
         events,
         tiers,
+        tickets,
         loading,
         pending,
         notice,

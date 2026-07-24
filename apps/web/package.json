@@ -14,7 +14,10 @@
   "dependencies": {
     "@centlalia/client": "workspace:*",
     "@solana/kit": "7.0.0",
+    "@zxing/browser": "0.1.5",
+    "@zxing/library": "0.21.3",
     "next": "16.2.10",
+    "qrcode": "1.5.4",
     "react": "19.2.7",
     "react-dom": "19.2.7"
   },
@@ -24,6 +27,7 @@
     "@testing-library/jest-dom": "6.6.4",
     "@testing-library/react": "16.3.0",
     "@types/node": "22.16.3",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "19.1.8",
     "@types/react-dom": "19.1.6",
     "eslint": "9.31.0",

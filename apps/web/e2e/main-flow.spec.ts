@@ -42,6 +42,17 @@ test('expone el marketplace y protege las herramientas de organizer', async ({ p
   await expect(page.getByText('Conecta la wallet organizer para ver sus eventos.')).toBeVisible();
 });
 
+test('expone los workspaces holder y staff sin simular una wallet', async ({ page }) => {
+  await page.goto('/tickets');
+  await expect(page.getByRole('heading', { name: 'Mis boletos' })).toBeVisible();
+  await expect(page.getByText('Conecta la wallet que compró el acceso.')).toBeVisible();
+
+  await page.getByRole('link', { name: 'Staff' }).click();
+  await expect(page.getByRole('heading', { name: 'Control de acceso' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Leer acceso' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Verificar y consumir' })).toBeVisible();
+});
+
 test('crea, publica, compra y rechaza un segundo check-in', async ({ page }) => {
   await page.goto('/demo');
   await expect(page.getByRole('link', { name: 'Centlalia, inicio' })).toBeVisible();

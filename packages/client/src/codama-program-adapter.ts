@@ -16,6 +16,7 @@ import {
 import {
   CENTLALIA_TICKETING_PROGRAM_ADDRESS,
   fetchAllMaybeEvent,
+  fetchAllMaybeTicketRecord,
   fetchAllMaybeTier,
   fetchMaybeCheckInIntent,
   fetchMaybeEvent,
@@ -95,6 +96,7 @@ export type PresentCheckInCoreOperation = Omit<PresentCheckInCoreAsyncInput, 'ho
 export type ConsumeCheckInCoreOperation = Omit<ConsumeCheckInCoreAsyncInput, 'staff'>;
 
 const EVENT_ACCOUNT_SIZE = 443n;
+const TICKET_RECORD_ACCOUNT_SIZE = 254n;
 const TIER_ACCOUNT_SIZE = 120n;
 
 function validatedRpcUrl(rpcUrl: string): string {
@@ -259,6 +261,15 @@ export class CodamaProgramAdapter {
     const addresses = await this.getProgramAccountAddresses(TIER_ACCOUNT_SIZE);
     if (addresses.length === 0) return [];
     const accounts = await fetchAllMaybeTier(this.rpc, addresses, { commitment: 'confirmed' });
+    return accounts.filter((account) => account.exists);
+  }
+
+  async listTicketRecords() {
+    const addresses = await this.getProgramAccountAddresses(TICKET_RECORD_ACCOUNT_SIZE);
+    if (addresses.length === 0) return [];
+    const accounts = await fetchAllMaybeTicketRecord(this.rpc, addresses, {
+      commitment: 'confirmed',
+    });
     return accounts.filter((account) => account.exists);
   }
 

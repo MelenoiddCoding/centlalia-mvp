@@ -8,8 +8,10 @@ import { useSolanaApp } from '@/providers/solana-app-provider';
 
 const navigation = [
   { href: '/events', label: 'Marketplace' },
+  { href: '/tickets', label: 'Mis boletos' },
   { href: '/organizer/events', label: 'Mis eventos' },
   { href: '/organizer/events/new', label: 'Crear evento' },
+  { href: '/staff', label: 'Staff' },
   { href: '/validation', label: 'Validación' },
 ] as const;
 

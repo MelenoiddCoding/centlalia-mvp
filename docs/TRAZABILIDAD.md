@@ -1,6 +1,6 @@
 # Matriz de trazabilidad
 
-Fecha de corte: 2026-07-16
+Fecha de corte: 2026-07-23
 
 Objetivo: demostrar como cada observacion de Discord y requisito del programa cambia el producto, su evidencia y su estado.
 
@@ -20,9 +20,9 @@ Objetivo: demostrar como cada observacion de Discord y requisito del programa ca
 | D09-03 | Reventa puede ser demasiado avanzada                            | Check-in y doble uso son la primera hipotesis; reventa queda secundaria hasta observar el dolor     | Ranking de dolor por usuario y reglas solicitadas    | Decidido; evidencia pendiente                                    |
 | D09-04 | Definir el tipo de piloto                                       | Usar demo controlada; shadow pilot solo con sistema normal de respaldo                              | Acuerdo del organizador y plan operativo             | Decidido; piloto pendiente                                       |
 | D09-05 | Validar si QR/lista tradicional es suficiente                   | Preguntar por incidentes y comparar utilidad del flujo firmado contra el proceso actual             | Respuestas, incidentes y utilidad 1-5                | Pendiente de evidencia                                           |
-| D09-06 | Validar duplicados, screenshots y confusion                     | La sesion incluye un segundo intento de acceso y escenarios de titular incorrecto                   | Log tecnico y observacion del staff                  | Pendiente de evidencia                                           |
+| D09-06 | Validar duplicados, screenshots y confusion                     | La sesion incluye un segundo intento de acceso y escenarios de titular incorrecto                   | Log tecnico y observacion del staff                  | Rechazo tecnico probado; observacion humana pendiente            |
 | D09-07 | Medir friccion de wallet                                        | Registrar ayuda, errores, abandono y tiempo por tarea                                               | Hoja de sesion y telemetria minima                   | Pendiente de evidencia                                           |
-| D09-08 | Staff debe validar sin scanner obligatorio                      | Dashboard movil consume una intencion firmada y corta                                               | E2E con wallet de asistente y staff                  | UI demo y runtime listos; conexión pendiente                     |
+| D09-08 | Staff debe validar sin scanner obligatorio                      | Dashboard movil acepta camara o payload manual y consume una intencion firmada y corta              | E2E con wallet de asistente y staff                  | UI transaccional lista; recorrido externo multiwallet pendiente  |
 | D09-09 | Organizador debe entender las reglas                            | La demo pide configurar o solicitar transferencia, markup, ventana, staff y acceso                  | Al menos una regla concreta solicitada               | Pendiente de evidencia                                           |
 | D09-10 | Devnet debe bastar para aprender                                | Devnet se usa como demostracion, nunca como sistema productivo de acceso o pagos                    | Tres demos completas y retroalimentacion             | Decidido; evidencia pendiente                                    |
 | D09-11 | Dos organizadores aceptan probar                                | Reclutar por WayLearn y comunidades Solana; pedir evento candidato concreto                         | Dos aceptaciones registradas                         | Pendiente de evidencia                                           |

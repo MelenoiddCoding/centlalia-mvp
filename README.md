@@ -13,6 +13,12 @@ Este repositorio es la implementación canónica creada para Solana Latam Labs P
 
 La aplicación separa dos recorridos. La **mesa demo local** permite explorar el producto sin wallet y nunca cuenta como evidencia on-chain. La **vertical verificable** conecta Wallet Standard, envía transacciones v0 y exige tres wallets distintas para emitir, comprar un activo MPL Core, presentar un intent, consumirlo y probar el rechazo del segundo uso. Cada paso enlaza sus cuentas y firmas en Explorer.
 
+La web pública expone el flujo transaccional por rol:
+
+- `/tickets`: lista `TicketRecord` de la wallet, enlaza el Core asset, crea el intent y genera un QR temporal.
+- `/staff`: lee el QR por cámara o pegado manual, comprueba `StaffAuthorization` y consume el acceso.
+- ambas rutas persisten localmente las firmas de presentación/consumo como evidencia reproducible; el registro on-chain sigue siendo la fuente de verdad.
+
 ## Inicio rápido
 
 Requisitos: Node.js 22 y pnpm 10.13.1, o VS Code con Dev Containers/GitHub Codespaces.
