@@ -23,19 +23,19 @@ El activo se crea por CPI desde `primary_purchase_core`. La cuenta del activo es
 
 ## Matriz de evidencia
 
-| Evidencia                           | Estado al corte                            | Gate para aprobar              |
-| ----------------------------------- | ------------------------------------------ | ------------------------------ |
-| Rust, fmt y Clippy                  | CI Linux verde                             | Aprobado                       |
-| IDL y cliente Codama                | Generados; 11 builders probados            | Aprobado                       |
-| Web Wallet Standard                 | Recorrido devnet con tres wallets completo | Aprobado técnicamente          |
-| Compra + creación Core atómica      | Firma pública y activo Core confirmados    | Aprobado técnicamente          |
-| Owner Core verificado en check-in   | Ticket, asset y holder coinciden en devnet | Aprobado técnicamente          |
-| Segundo consumo                     | Estado consumido; firma fallida pendiente  | Pendiente error público `6036` |
-| Prevención de transferencia externa | TransferV1 directo rechazado en validator  | Aprobado técnicamente          |
-| Regalo Core atómico                 | Owner Core y registro cambian juntos       | Aprobado en CI SBF             |
-| Reventa Core atómica                | Listing, pagos, owner y registro verificados | Aprobado en CI SBF           |
-| Cancelación de listing Core         | Delegate revocado; owner no cambia         | Aprobado en CI SBF             |
-| Evidencia de usuarios               | Pendiente                                  | 5-10 sesiones según protocolo  |
+| Evidencia                           | Estado al corte                              | Gate para aprobar              |
+| ----------------------------------- | -------------------------------------------- | ------------------------------ |
+| Rust, fmt y Clippy                  | CI Linux verde                               | Aprobado                       |
+| IDL y cliente Codama                | Generados; 11 builders probados              | Aprobado                       |
+| Web Wallet Standard                 | Recorrido devnet con tres wallets completo   | Aprobado técnicamente          |
+| Compra + creación Core atómica      | Firma pública y activo Core confirmados      | Aprobado técnicamente          |
+| Owner Core verificado en check-in   | Ticket, asset y holder coinciden en devnet   | Aprobado técnicamente          |
+| Segundo consumo                     | Estado consumido; firma fallida pendiente    | Pendiente error público `6036` |
+| Prevención de transferencia externa | TransferV1 directo rechazado en validator    | Aprobado técnicamente          |
+| Regalo Core atómico                 | Owner Core y registro cambian juntos         | Aprobado en CI SBF             |
+| Reventa Core atómica                | Listing, pagos, owner y registro verificados | Aprobado en CI SBF             |
+| Cancelación de listing Core         | Delegate revocado; owner no cambia           | Aprobado en CI SBF             |
+| Evidencia de usuarios               | Pendiente                                    | 5-10 sesiones según protocolo  |
 
 ## Regla de comunicación
 
