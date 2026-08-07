@@ -110,8 +110,13 @@ El programa `6KVngKJVYYbqfeXxzXdnaZzmKwo58iin8LmiMyZjgpbu` está actualizado en 
 
 El sprint de circulación Core está validado en host y por la
 [CI SBF 31145457955](https://github.com/MelenoiddCoding/centlalia-mvp/actions/runs/31145457955),
-pero aún no se ha actualizado el programa devnet ni la web pública con estas instrucciones.
-El despliegue se mantiene bloqueado hasta recuperar y verificar la upgrade authority y
-obtener firmas devnet de regalo y reventa.
+y fue desplegado en devnet en el
+[upgrade 4EsokxYUuuACrH84gJdGi1UivRE2ns73i1wPKEttvKkPMurWv3rts4yWZSPvEtGmwnvJ8rwadAvyU2TRwWVq4d8k](https://explorer.solana.com/tx/4EsokxYUuuACrH84gJdGi1UivRE2ns73i1wPKEttvKkPMurWv3rts4yWZSPvEtGmwnvJ8rwadAvyU2TRwWVq4d8k?cluster=devnet).
+El binario leído desde `ProgramData` coincide byte por byte con el artefacto SBF probado en
+CI (`815800` bytes; SHA-256
+`9B828529EB2A8521C8FD9F6508EA7769381E0C2F3B1541C23911F2FB2CFE1041`). La nueva UI está
+publicada en [web-two-amber-35.vercel.app](https://web-two-amber-35.vercel.app), deployment
+`dpl_72Bhr6NYrmaBaPpV9PUp1bUM3M8A`. Aún faltan firmas devnet públicas de regalo, listing,
+reventa y cancelación ejecutadas desde la UI con wallets reales.
 
 Consulta [SECURITY.md](SECURITY.md) antes de operar el programa. El software no ha sido auditado y no debe utilizarse en mainnet.

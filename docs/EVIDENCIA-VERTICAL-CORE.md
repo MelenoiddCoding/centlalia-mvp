@@ -86,8 +86,17 @@ Al corte de este documento pasan lint, typecheck, build, 31 pruebas TypeScript, 
 escenarios Playwright en desktop/mobile, 27 pruebas Rust, `cargo check`, fmt y Clippy. La
 [CI 31145457955](https://github.com/MelenoiddCoding/centlalia-mvp/actions/runs/31145457955)
 construyó el SBF y aprobó en local-validator regalo, reventa, cancelación, owners Core
-sincronizados y check-in exactamente una vez. El upgrade de devnet sigue pendiente; por
-ello todavía no se atribuyen firmas públicas de circulación Core ni se publica la UI nueva
-en producción.
+sincronizados y check-in exactamente una vez. Ese artefacto SBF fue desplegado en devnet
+mediante el
+[upgrade 4EsokxYUuuACrH84gJdGi1UivRE2ns73i1wPKEttvKkPMurWv3rts4yWZSPvEtGmwnvJ8rwadAvyU2TRwWVq4d8k](https://explorer.solana.com/tx/4EsokxYUuuACrH84gJdGi1UivRE2ns73i1wPKEttvKkPMurWv3rts4yWZSPvEtGmwnvJ8rwadAvyU2TRwWVq4d8k?cluster=devnet),
+finalizado en el slot `481800655`. Una lectura posterior de `ProgramData` confirmó los
+`815800` bytes exactos del artefacto probado en CI, cuyo SHA-256 es
+`9B828529EB2A8521C8FD9F6508EA7769381E0C2F3B1541C23911F2FB2CFE1041`.
+
+La UI del sprint está publicada en
+[web-two-amber-35.vercel.app](https://web-two-amber-35.vercel.app), deployment de producción
+`dpl_72Bhr6NYrmaBaPpV9PUp1bUM3M8A`. La publicación no sustituye el gate pendiente: todavía
+no se atribuyen firmas devnet públicas a regalo, listing, compra de reventa o cancelación
+Core hasta ejecutar esas operaciones desde la UI con wallets reales.
 
 Después del gate técnico se observarán tiempos, errores, comprensión de wallet y valor percibido. Si los usuarios no valoran propiedad verificable o política compartida frente a QR/lista privada, la hipótesis Solana debe refutarse o reducirse.

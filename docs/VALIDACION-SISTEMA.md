@@ -10,7 +10,7 @@ Alcance: producto, negocio, arquitectura, seguridad, evidencia y alineacion con 
 
 Centlalia tiene una tesis de producto coherente para la incubacion: demostrar que un ticket verificable, con reglas de circulacion y check-in de un solo uso, resuelve un problema concreto para comunidades Web3 y eventos Solana pequenos. La idea y el alcance documental son validos para continuar, pero el sistema **todavia no esta validado con usuarios ni listo para operacion real**.
 
-El prototipo anterior sirve como fuente de aprendizaje, no como base productiva. La implementación greenfield añade firma/envío en frontend y una vertical MPL Core por CPI. Al corte 2026-07-22, código, CI SBF, validator, upgrade devnet y web pública pasan; el recorrido público con tres wallets y la evidencia de usuarios siguen siendo gates obligatorios antes de considerarlo un MVP validado.
+El prototipo anterior sirve como fuente de aprendizaje, no como base productiva. La implementación greenfield añade firma/envío en frontend y una vertical MPL Core por CPI. Al corte 2026-08-07, código, CI SBF, validator, upgrade devnet y web pública pasan; las firmas devnet de circulación desde la UI, el recorrido público con tres wallets y la evidencia de usuarios siguen siendo gates obligatorios antes de considerarlo un MVP validado.
 
 Resultado por dimension:
 
@@ -46,7 +46,7 @@ El flujo historico de regalo actualizaba un propietario reconocido sin transferi
 
 Correccion obligatoria: regalos y reventas deben transferir el asset y actualizar `TicketRecord` en una operacion coherente. Si la tecnologia de asset elegida no permite demostrar esta invariancia, no se acepta para el MVP.
 
-Estado: la compra MPL Core crea activo y `TicketRecord` atómicamente por CPI. Regalo y reventa Core transfieren el asset por CPI y actualizan `TicketRecord` en la misma transacción; listing y cancelación administran un `TransferDelegate` del PDA. La CI SBF `31145457955` verifica owner Core y registro después de regalo, reventa y cancelación. La corrección técnica está aprobada en validator; faltan upgrade y firmas devnet. Las rutas Managed no cuentan como evidencia.
+Estado: la compra MPL Core crea activo y `TicketRecord` atómicamente por CPI. Regalo y reventa Core transfieren el asset por CPI y actualizan `TicketRecord` en la misma transacción; listing y cancelación administran un `TransferDelegate` del PDA. La CI SBF `31145457955` verifica owner Core y registro después de regalo, reventa y cancelación. El artefacto probado fue desplegado en devnet en la transacción `4EsokxYUuuACrH84gJdGi1UivRE2ns73i1wPKEttvKkPMurWv3rts4yWZSPvEtGmwnvJ8rwadAvyU2TRwWVq4d8k`; faltan las firmas devnet de esas operaciones de circulación. Las rutas Managed no cuentan como evidencia.
 
 #### V-02. El check-in no demostraba posesion de la wallet
 
