@@ -205,10 +205,14 @@ test('local validator completes Core circulation and exactly-once check-in', asy
     instruction: SignableInstruction,
   ) => {
     const built = await buildTransaction(feePayer, instruction);
-    await sendAndConfirm(built.transaction, {
-      commitment: 'confirmed',
-      skipPreflight: false,
-    });
+    try {
+      await sendAndConfirm(built.transaction, {
+        commitment: 'confirmed',
+        skipPreflight: false,
+      });
+    } catch (error) {
+      throw new Error(`Transaction "${label}" failed.`, { cause: error });
+    }
     const signature = getSignatureFromTransaction(built.transaction);
     signatures[label] = signature;
     return built;
