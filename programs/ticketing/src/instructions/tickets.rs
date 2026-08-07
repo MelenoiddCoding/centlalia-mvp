@@ -537,14 +537,41 @@ pub fn cancel_listing_core(ctx: Context<CancelListingCore>) -> Result<()> {
     let platform_key = ctx.accounts.platform_config.key();
     let authority_bump = [ctx.accounts.platform_config.asset_authority_bump];
     let authority_seeds: &[&[u8]] = &[b"asset-authority", platform_key.as_ref(), &authority_bump];
+    let core_program = ctx.accounts.core_program.to_account_info();
+    let core_asset = ctx.accounts.core_asset.to_account_info();
+    let payer = ctx.accounts.seller.to_account_info();
+    let asset_authority = ctx.accounts.asset_authority.to_account_info();
+    let system_program = ctx.accounts.system_program.to_account_info();
+    set_core_asset_frozen(
+        CoreAssetMutation {
+            core_program: &core_program,
+            asset: &core_asset,
+            payer: &payer,
+            authority: &asset_authority,
+            system_program: &system_program,
+        },
+        false,
+        authority_seeds,
+    )?;
     remove_core_transfer_delegate(
         CoreAssetMutation {
-            core_program: &ctx.accounts.core_program.to_account_info(),
-            asset: &ctx.accounts.core_asset.to_account_info(),
-            payer: &ctx.accounts.seller.to_account_info(),
-            authority: &ctx.accounts.asset_authority.to_account_info(),
-            system_program: &ctx.accounts.system_program.to_account_info(),
+            core_program: &core_program,
+            asset: &core_asset,
+            payer: &payer,
+            authority: &asset_authority,
+            system_program: &system_program,
         },
+        authority_seeds,
+    )?;
+    set_core_asset_frozen(
+        CoreAssetMutation {
+            core_program: &core_program,
+            asset: &core_asset,
+            payer: &payer,
+            authority: &asset_authority,
+            system_program: &system_program,
+        },
+        true,
         authority_seeds,
     )?;
     ctx.accounts.listing.status = ListingStatus::Cancelled;

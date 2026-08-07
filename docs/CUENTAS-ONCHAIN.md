@@ -77,7 +77,8 @@ La circulacion Core conserva esa misma fuente de verdad:
   expiracion;
 - `buy_resale_core` valida limite, vigencia y pagos, descongela, transfiere mediante el
   delegate y vuelve a congelar antes de actualizar owner y listing;
-- `cancel_listing_core` elimina el delegate y cancela el listing sin transferir propiedad.
+- `cancel_listing_core` descongela, elimina el delegate y vuelve a congelar antes de cancelar
+  el listing, sin transferir propiedad.
 
 MPL Core revoca el `TransferDelegate` normal cuando ocurre la transferencia. El
 `PermanentFreezeDelegate` permanece bajo el PDA y evita que gift o reventa puedan evadir
