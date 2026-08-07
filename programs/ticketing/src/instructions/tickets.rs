@@ -558,10 +558,10 @@ pub fn cancel_listing_core(ctx: Context<CancelListingCore>) -> Result<()> {
             core_program: &core_program,
             asset: &core_asset,
             payer: &payer,
-            authority: &asset_authority,
+            authority: &payer,
             system_program: &system_program,
         },
-        authority_seeds,
+        &[],
     )?;
     set_core_asset_frozen(
         CoreAssetMutation {

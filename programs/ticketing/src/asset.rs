@@ -155,7 +155,7 @@ pub fn add_core_transfer_delegate(
 
 pub fn remove_core_transfer_delegate(
     accounts: CoreAssetMutation<'_, '_>,
-    authority_signer: &[&[u8]],
+    authority_signers: &[&[&[u8]]],
 ) -> Result<()> {
     RemovePluginV1CpiBuilder::new(accounts.core_program)
         .asset(accounts.asset)
@@ -163,7 +163,7 @@ pub fn remove_core_transfer_delegate(
         .authority(Some(accounts.authority))
         .system_program(accounts.system_program)
         .plugin_type(PluginType::TransferDelegate)
-        .invoke_signed(&[authority_signer])?;
+        .invoke_signed(authority_signers)?;
     Ok(())
 }
 
