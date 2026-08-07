@@ -81,7 +81,17 @@ jobs:
         run: anchor build --ignore-keys
       - name: Run local-validator integration
         if: env.HAS_PROGRAM_KEYPAIR == 'true'
-        run: anchor test --skip-build --validator legacy
+        shell: bash
+        run: |
+          set +e
+          anchor test --skip-build --validator legacy > local-validator.log 2>&1
+          status=$?
+          cat local-validator.log
+          if [ "$status" -ne 0 ]; then
+            message="$(tail -n 80 local-validator.log | sed 's/%/%25/g; s/\r/%0D/g' | awk '{printf "%s%%0A", $0}')"
+            echo "::error title=local-validator integration::$message"
+            exit "$status"
+          fi
       - name: Upload SBF and IDL
         uses: actions/upload-artifact@v4
         with:
