@@ -46,7 +46,7 @@ El flujo historico de regalo actualizaba un propietario reconocido sin transferi
 
 Correccion obligatoria: regalos y reventas deben transferir el asset y actualizar `TicketRecord` en una operacion coherente. Si la tecnologia de asset elegida no permite demostrar esta invariancia, no se acepta para el MVP.
 
-Estado: la compra MPL Core crea activo y `TicketRecord` atómicamente por CPI. Regalo y reventa Core ya transfieren el asset por CPI y actualizan `TicketRecord` en la misma transacción; listing y cancelación administran un `TransferDelegate` del PDA. Pruebas host y cliente pasan. El gate permanece abierto hasta ejecutar el nuevo harness SBF y publicar evidencia devnet; las rutas Managed no cuentan como evidencia de esta corrección.
+Estado: la compra MPL Core crea activo y `TicketRecord` atómicamente por CPI. Regalo y reventa Core transfieren el asset por CPI y actualizan `TicketRecord` en la misma transacción; listing y cancelación administran un `TransferDelegate` del PDA. La CI SBF `31145457955` verifica owner Core y registro después de regalo, reventa y cancelación. La corrección técnica está aprobada en validator; faltan upgrade y firmas devnet. Las rutas Managed no cuentan como evidencia.
 
 #### V-02. El check-in no demostraba posesion de la wallet
 
@@ -114,7 +114,7 @@ No estaban cerrados casos como revocar staff, cancelar un listing y transiciones
 
 Correccion: incluir esas operaciones en el contrato publico del MVP y probar autorizaciones y repeticion.
 
-Estado: revocación de staff, cancelación de listing Core, cancelación/cierre de evento y expiración/cancelación de intent están implementadas. La cancelación con tickets emitidos queda bloqueada hasta diseñar y probar una política de reembolsos. El harness cubre runtime de gift, listing, compra y cancelación Core, pero el nuevo recorrido SBF debe pasar en CI antes de cerrar el hallazgo.
+Estado: revocación de staff, cancelación de listing Core, cancelación/cierre de evento y expiración/cancelación de intent están implementadas. La cancelación con tickets emitidos queda bloqueada hasta diseñar y probar una política de reembolsos. La CI SBF `31145457955` aprueba runtime de gift, listing, compra y cancelación Core; el alcance operativo definido queda cubierto.
 
 #### V-10. La evidencia previa no corresponde a la ventana actual de incubacion
 

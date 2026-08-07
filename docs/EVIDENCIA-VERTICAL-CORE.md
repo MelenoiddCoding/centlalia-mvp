@@ -32,6 +32,9 @@ El activo se crea por CPI desde `primary_purchase_core`. La cuenta del activo es
 | Owner Core verificado en check-in   | Ticket, asset y holder coinciden en devnet | Aprobado técnicamente          |
 | Segundo consumo                     | Estado consumido; firma fallida pendiente  | Pendiente error público `6036` |
 | Prevención de transferencia externa | TransferV1 directo rechazado en validator  | Aprobado técnicamente          |
+| Regalo Core atómico                 | Owner Core y registro cambian juntos       | Aprobado en CI SBF             |
+| Reventa Core atómica                | Listing, pagos, owner y registro verificados | Aprobado en CI SBF           |
+| Cancelación de listing Core         | Delegate revocado; owner no cambia         | Aprobado en CI SBF             |
 | Evidencia de usuarios               | Pendiente                                  | 5-10 sesiones según protocolo  |
 
 ## Regla de comunicación
@@ -79,10 +82,12 @@ MPL Core real. Las cuatro operaciones hacen CPI contra Core y mantienen sincroni
 controlado por `AssetAuthority`; el programa descongela, transfiere y vuelve a congelar en
 la misma transacción. Un intent de check-in activo bloquea regalo y listing.
 
-Al corte de este documento pasan localmente lint, typecheck, build, 31 pruebas TypeScript,
-10 escenarios Playwright en desktop/mobile, 27 pruebas Rust, `cargo check`, fmt y Clippy.
-El harness SBF incluye regalo, reventa y cancelación, pero su ejecución en local-validator
-Linux y el upgrade de devnet siguen pendientes. Por ello todavía no se atribuyen firmas
-públicas de circulación Core ni se publica la UI nueva en producción.
+Al corte de este documento pasan lint, typecheck, build, 31 pruebas TypeScript, 10
+escenarios Playwright en desktop/mobile, 27 pruebas Rust, `cargo check`, fmt y Clippy. La
+[CI 31145457955](https://github.com/MelenoiddCoding/centlalia-mvp/actions/runs/31145457955)
+construyó el SBF y aprobó en local-validator regalo, reventa, cancelación, owners Core
+sincronizados y check-in exactamente una vez. El upgrade de devnet sigue pendiente; por
+ello todavía no se atribuyen firmas públicas de circulación Core ni se publica la UI nueva
+en producción.
 
 Después del gate técnico se observarán tiempos, errores, comprensión de wallet y valor percibido. Si los usuarios no valoran propiedad verificable o política compartida frente a QR/lista privada, la hipótesis Solana debe refutarse o reducirse.
