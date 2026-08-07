@@ -113,6 +113,34 @@ pub struct GiftTicket<'info> {
 }
 
 #[derive(Accounts)]
+pub struct GiftTicketCore<'info> {
+    #[account(mut)]
+    pub current_owner: Signer<'info>,
+    pub recipient: SystemAccount<'info>,
+    #[account(seeds = [b"platform"], bump = platform_config.bump)]
+    pub platform_config: Account<'info, PlatformConfig>,
+    pub event: Account<'info, Event>,
+    #[account(
+        mut,
+        constraint = ticket_record.event == event.key() @ TicketingError::InvalidRelationship
+    )]
+    pub ticket_record: Account<'info, TicketRecord>,
+    /// CHECK: Ownership and MPL Core program ownership are verified in the handler.
+    #[account(mut, address = ticket_record.asset_id)]
+    pub core_asset: UncheckedAccount<'info>,
+    /// CHECK: PDA signs freeze updates and remains the transfer delegate while listed.
+    #[account(
+        seeds = [b"asset-authority", platform_config.key().as_ref()],
+        bump = platform_config.asset_authority_bump
+    )]
+    pub asset_authority: UncheckedAccount<'info>,
+    /// CHECK: Address is constrained to the official MPL Core program.
+    #[account(address = mpl_core::ID)]
+    pub core_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
 #[instruction(listing_id: u32)]
 pub struct ListTicket<'info> {
     #[account(mut)]
@@ -148,6 +176,42 @@ pub struct ListTicket<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(listing_id: u32)]
+pub struct ListTicketCore<'info> {
+    #[account(mut)]
+    pub seller: Signer<'info>,
+    #[account(seeds = [b"platform"], bump = platform_config.bump)]
+    pub platform_config: Account<'info, PlatformConfig>,
+    pub event: Account<'info, Event>,
+    #[account(
+        mut,
+        constraint = ticket_record.event == event.key() @ TicketingError::InvalidRelationship
+    )]
+    pub ticket_record: Account<'info, TicketRecord>,
+    /// CHECK: Ownership and MPL Core program ownership are verified in the handler.
+    #[account(mut, address = ticket_record.asset_id)]
+    pub core_asset: UncheckedAccount<'info>,
+    /// CHECK: PDA becomes the Core transfer delegate for this listing.
+    #[account(
+        seeds = [b"asset-authority", platform_config.key().as_ref()],
+        bump = platform_config.asset_authority_bump
+    )]
+    pub asset_authority: UncheckedAccount<'info>,
+    #[account(
+        init,
+        payer = seller,
+        space = Listing::SPACE,
+        seeds = [b"listing", ticket_record.key().as_ref(), &listing_id.to_le_bytes()],
+        bump
+    )]
+    pub listing: Account<'info, Listing>,
+    /// CHECK: Address is constrained to the official MPL Core program.
+    #[account(address = mpl_core::ID)]
+    pub core_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
 pub struct CancelListing<'info> {
     pub seller: Signer<'info>,
     #[account(seeds = [b"platform"], bump = platform_config.bump)]
@@ -160,6 +224,35 @@ pub struct CancelListing<'info> {
         constraint = listing.event == ticket_record.event @ TicketingError::InvalidRelationship
     )]
     pub listing: Account<'info, Listing>,
+}
+
+#[derive(Accounts)]
+pub struct CancelListingCore<'info> {
+    #[account(mut)]
+    pub seller: Signer<'info>,
+    #[account(seeds = [b"platform"], bump = platform_config.bump)]
+    pub platform_config: Account<'info, PlatformConfig>,
+    #[account(mut)]
+    pub ticket_record: Account<'info, TicketRecord>,
+    #[account(
+        mut,
+        constraint = listing.ticket == ticket_record.key() @ TicketingError::InvalidRelationship,
+        constraint = listing.event == ticket_record.event @ TicketingError::InvalidRelationship
+    )]
+    pub listing: Account<'info, Listing>,
+    /// CHECK: Ownership and MPL Core program ownership are verified in the handler.
+    #[account(mut, address = ticket_record.asset_id)]
+    pub core_asset: UncheckedAccount<'info>,
+    /// CHECK: PDA revokes its Core transfer delegation.
+    #[account(
+        seeds = [b"asset-authority", platform_config.key().as_ref()],
+        bump = platform_config.asset_authority_bump
+    )]
+    pub asset_authority: UncheckedAccount<'info>,
+    /// CHECK: Address is constrained to the official MPL Core program.
+    #[account(address = mpl_core::ID)]
+    pub core_program: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -200,5 +293,46 @@ pub struct BuyResale<'info> {
         bump = platform_config.asset_authority_bump
     )]
     pub asset_authority: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct BuyResaleCore<'info> {
+    #[account(mut)]
+    pub buyer: Signer<'info>,
+    #[account(seeds = [b"platform"], bump = platform_config.bump)]
+    pub platform_config: Account<'info, PlatformConfig>,
+    #[account(has_one = organizer)]
+    pub event: Account<'info, Event>,
+    #[account(
+        mut,
+        constraint = ticket_record.event == event.key() @ TicketingError::InvalidRelationship
+    )]
+    pub ticket_record: Account<'info, TicketRecord>,
+    #[account(
+        mut,
+        constraint = listing.ticket == ticket_record.key() @ TicketingError::InvalidRelationship,
+        constraint = listing.event == event.key() @ TicketingError::InvalidRelationship,
+        constraint = listing.seller == seller.key() @ TicketingError::InvalidRelationship
+    )]
+    pub listing: Account<'info, Listing>,
+    #[account(mut, address = listing.seller)]
+    pub seller: SystemAccount<'info>,
+    #[account(mut, address = event.organizer)]
+    pub organizer: SystemAccount<'info>,
+    #[account(mut, address = event.platform_treasury)]
+    pub treasury: SystemAccount<'info>,
+    /// CHECK: Ownership and MPL Core program ownership are verified in the handler.
+    #[account(mut, address = ticket_record.asset_id)]
+    pub core_asset: UncheckedAccount<'info>,
+    /// CHECK: PDA signs freeze and delegated transfer CPIs.
+    #[account(
+        seeds = [b"asset-authority", platform_config.key().as_ref()],
+        bump = platform_config.asset_authority_bump
+    )]
+    pub asset_authority: UncheckedAccount<'info>,
+    /// CHECK: Address is constrained to the official MPL Core program.
+    #[account(address = mpl_core::ID)]
+    pub core_program: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
 }

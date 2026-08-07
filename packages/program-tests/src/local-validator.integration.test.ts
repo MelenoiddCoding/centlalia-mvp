@@ -24,6 +24,7 @@ import {
   signTransactionMessageWithSigners,
   appendTransactionMessageInstruction,
   AccountRole,
+  type Address,
   type Instruction,
   type InstructionWithSigners,
   type KeyPairSigner,
@@ -103,21 +104,40 @@ async function loadAnchorWallet(rawPath: string): Promise<KeyPairSigner> {
   return createKeyPairSignerFromBytes(new Uint8Array(parsed as number[]));
 }
 
-test('local validator completes purchase and exactly-once check-in', async () => {
+test('local validator completes Core circulation and exactly-once check-in', async () => {
   const rpcEndpoint = assertLocalEndpoint(requireEnvironment('ANCHOR_PROVIDER_URL'));
   const websocketEndpoint = getWebsocketEndpoint(rpcEndpoint);
   const rpc = createSolanaRpc(devnet(rpcEndpoint.toString()));
   const rpcSubscriptions = createSolanaRpcSubscriptions(devnet(websocketEndpoint.toString()));
   const sendAndConfirm = sendAndConfirmTransactionFactory({ rpc, rpcSubscriptions });
   const airdrop = airdropFactory({ rpc, rpcSubscriptions });
+  const expectCoreOwner = async (asset: Address, expectedOwner: Address) => {
+    const account = await rpc
+      .getAccountInfo(asset, { commitment: 'confirmed', encoding: 'base64' })
+      .send();
+    expect(account.value?.owner).toBe(MPL_CORE_ADDRESS);
+    expect(account.value).not.toBeNull();
+    const data = Buffer.from(account.value!.data[0], 'base64');
+    const expectedOwnerBytes = Buffer.from(getAddressEncoder().encode(expectedOwner));
+    expect(data.subarray(1, 33)).toEqual(expectedOwnerBytes);
+  };
 
-  const [admin, organizer, attendee, staff] = await Promise.all([
+  const [admin, organizer, attendee, staff, giftRecipient, resaleBuyer] = await Promise.all([
     loadAnchorWallet(requireEnvironment('ANCHOR_WALLET')),
     generateKeyPairSigner(),
     generateKeyPairSigner(),
     generateKeyPairSigner(),
+    generateKeyPairSigner(),
+    generateKeyPairSigner(),
   ]);
-  const roleAddresses = [admin.address, organizer.address, attendee.address, staff.address];
+  const roleAddresses = [
+    admin.address,
+    organizer.address,
+    attendee.address,
+    staff.address,
+    giftRecipient.address,
+    resaleBuyer.address,
+  ];
   if (new Set(roleAddresses).size !== roleAddresses.length) {
     throw new Error('Admin, organizer, attendee, and staff must use distinct keypairs.');
   }
@@ -224,6 +244,7 @@ test('local validator completes purchase and exactly-once check-in', async () =>
     intentNonce,
     ticketRecord,
   });
+  const [assetAuthority] = await generated.findAssetAuthorityPda({ platformConfig });
 
   await submit(
     'createEvent',
@@ -269,7 +290,7 @@ test('local validator completes purchase and exactly-once check-in', async () =>
     'primaryPurchaseCore',
     attendee,
     await generated.getPrimaryPurchaseCoreInstructionAsync({
-      assetAuthority: (await generated.findAssetAuthorityPda({ platformConfig }))[0],
+      assetAuthority,
       buyer: attendee,
       coreAsset,
       event,
@@ -310,6 +331,210 @@ test('local validator completes purchase and exactly-once check-in', async () =>
     bypassError,
     'The frozen Core asset was transferred directly, bypassing Centlalia policy.',
   ).toBeDefined();
+
+  const circulationEventId = eventId + 1n;
+  const [circulationEvent] = await generated.findEventPda({
+    eventId: circulationEventId,
+    organizer: organizer.address,
+  });
+  const [circulationTier] = await generated.findTierPda({
+    event: circulationEvent,
+    tierId,
+  });
+  await submit(
+    'createCirculationEvent',
+    organizer,
+    await generated.getCreateEventInstructionAsync({
+      details: {
+        checkInEndAt: now + 3_000n,
+        checkInStartAt: now + 1_800n,
+        endsAt: now + 3_600n,
+        maxResaleMarkupBps: 2_000,
+        metadataUri: 'https://example.test/events/core-circulation.json',
+        organizerRoyaltyBps: 500,
+        resaleEnabled: true,
+        salesEndAt: now + 600n,
+        salesStartAt: now - 30n,
+        startsAt: now + 2_400n,
+        title: 'Centlalia Core Circulation',
+      },
+      event: circulationEvent,
+      eventId: circulationEventId,
+      organizer,
+    }),
+  );
+  await submit(
+    'addCirculationTier',
+    organizer,
+    await generated.getAddTierInstructionAsync({
+      event: circulationEvent,
+      name: 'Transferable Core',
+      organizer,
+      priceLamports: TICKET_PRICE_LAMPORTS,
+      supply: 10,
+      tier: circulationTier,
+      tierId,
+    }),
+  );
+  await submit(
+    'publishCirculationEvent',
+    organizer,
+    await generated.getPublishEventInstructionAsync({ event: circulationEvent, organizer }),
+  );
+
+  const circulationTicketId = 0n;
+  const [circulationTicket] = await generated.findTicketRecordPda({
+    event: circulationEvent,
+    ticketId: circulationTicketId,
+  });
+  const [circulationAsset] = await generated.findCoreAssetPda({
+    ticketRecord: circulationTicket,
+  });
+  await submit(
+    'purchaseCirculationTicket',
+    attendee,
+    await generated.getPrimaryPurchaseCoreInstructionAsync({
+      assetAuthority,
+      buyer: attendee,
+      coreAsset: circulationAsset,
+      event: circulationEvent,
+      organizer: organizer.address,
+      platformConfig,
+      ticketId: circulationTicketId,
+      ticketRecord: circulationTicket,
+      tier: circulationTier,
+      treasury: admin.address,
+    }),
+  );
+  await submit(
+    'giftTicketCore',
+    attendee,
+    await generated.getGiftTicketCoreInstructionAsync({
+      assetAuthority,
+      coreAsset: circulationAsset,
+      currentOwner: attendee,
+      event: circulationEvent,
+      platformConfig,
+      recipient: giftRecipient.address,
+      ticketRecord: circulationTicket,
+    }),
+  );
+  await expectCoreOwner(circulationAsset, giftRecipient.address);
+
+  const listingId = 0;
+  const [circulationListing] = await generated.findListingPda({
+    listingId,
+    ticketRecord: circulationTicket,
+  });
+  await submit(
+    'listTicketCore',
+    giftRecipient,
+    await generated.getListTicketCoreInstructionAsync({
+      assetAuthority,
+      coreAsset: circulationAsset,
+      event: circulationEvent,
+      expiresAt: now + 1_200n,
+      listing: circulationListing,
+      listingId,
+      platformConfig,
+      priceLamports: 1_100_000n,
+      seller: giftRecipient,
+      ticketRecord: circulationTicket,
+    }),
+  );
+  await submit(
+    'buyResaleCore',
+    resaleBuyer,
+    await generated.getBuyResaleCoreInstructionAsync({
+      assetAuthority,
+      buyer: resaleBuyer,
+      coreAsset: circulationAsset,
+      event: circulationEvent,
+      listing: circulationListing,
+      organizer: organizer.address,
+      platformConfig,
+      seller: giftRecipient.address,
+      ticketRecord: circulationTicket,
+      treasury: admin.address,
+    }),
+  );
+  await expectCoreOwner(circulationAsset, resaleBuyer.address);
+
+  const cancellationTicketId = 1n;
+  const [cancellationTicket] = await generated.findTicketRecordPda({
+    event: circulationEvent,
+    ticketId: cancellationTicketId,
+  });
+  const [cancellationAsset] = await generated.findCoreAssetPda({
+    ticketRecord: cancellationTicket,
+  });
+  const [cancellationListing] = await generated.findListingPda({
+    listingId,
+    ticketRecord: cancellationTicket,
+  });
+  await submit(
+    'purchaseCancellationTicket',
+    attendee,
+    await generated.getPrimaryPurchaseCoreInstructionAsync({
+      assetAuthority,
+      buyer: attendee,
+      coreAsset: cancellationAsset,
+      event: circulationEvent,
+      organizer: organizer.address,
+      platformConfig,
+      ticketId: cancellationTicketId,
+      ticketRecord: cancellationTicket,
+      tier: circulationTier,
+      treasury: admin.address,
+    }),
+  );
+  await submit(
+    'listCancellationTicket',
+    attendee,
+    await generated.getListTicketCoreInstructionAsync({
+      assetAuthority,
+      coreAsset: cancellationAsset,
+      event: circulationEvent,
+      expiresAt: now + 1_200n,
+      listing: cancellationListing,
+      listingId,
+      platformConfig,
+      priceLamports: 1_050_000n,
+      seller: attendee,
+      ticketRecord: cancellationTicket,
+    }),
+  );
+  await submit(
+    'cancelListingCore',
+    attendee,
+    await generated.getCancelListingCoreInstructionAsync({
+      assetAuthority,
+      coreAsset: cancellationAsset,
+      listing: cancellationListing,
+      platformConfig,
+      seller: attendee,
+      ticketRecord: cancellationTicket,
+    }),
+  );
+  await expectCoreOwner(cancellationAsset, attendee.address);
+
+  const [circulationTicketAccount, circulationListingAccount, cancellationTicketAccount] =
+    await Promise.all([
+      generated.fetchTicketRecord(rpc, circulationTicket, { commitment: 'confirmed' }),
+      generated.fetchListing(rpc, circulationListing, { commitment: 'confirmed' }),
+      generated.fetchTicketRecord(rpc, cancellationTicket, { commitment: 'confirmed' }),
+    ]);
+  expect(circulationTicketAccount.data.owner).toBe(resaleBuyer.address);
+  expect(circulationTicketAccount.data.transferCount).toBe(2);
+  expect(circulationTicketAccount.data.status).toBe(generated.TicketStatus.Active);
+  expect(circulationListingAccount.data.status).toBe(generated.ListingStatus.Filled);
+  expect(circulationListingAccount.data.buyer).toEqual({
+    __option: 'Some',
+    value: resaleBuyer.address,
+  });
+  expect(cancellationTicketAccount.data.owner).toBe(attendee.address);
+  expect(cancellationTicketAccount.data.status).toBe(generated.TicketStatus.Active);
+
   await submit(
     'authorizeStaff',
     organizer,
@@ -387,6 +612,8 @@ test('local validator completes purchase and exactly-once check-in', async () =>
         accounts: {
           admin: admin.address,
           attendee: attendee.address,
+          giftRecipient: giftRecipient.address,
+          resaleBuyer: resaleBuyer.address,
           checkInIntent,
           event,
           coreAsset,

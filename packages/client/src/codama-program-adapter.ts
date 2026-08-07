@@ -16,6 +16,7 @@ import {
 import {
   CENTLALIA_TICKETING_PROGRAM_ADDRESS,
   fetchAllMaybeEvent,
+  fetchAllMaybeListing,
   fetchAllMaybeTicketRecord,
   fetchAllMaybeTier,
   fetchMaybeCheckInIntent,
@@ -27,10 +28,14 @@ import {
   findPlatformConfigPda,
   getAddTierInstructionAsync,
   getAuthorizeStaffInstructionAsync,
+  getBuyResaleCoreInstructionAsync,
+  getCancelListingCoreInstructionAsync,
   getConsumeCheckInInstructionAsync,
   getConsumeCheckInCoreInstructionAsync,
   getCreateEventInstructionAsync,
+  getGiftTicketCoreInstructionAsync,
   getInitializePlatformInstructionAsync,
+  getListTicketCoreInstructionAsync,
   getPresentCheckInInstructionAsync,
   getPresentCheckInCoreInstructionAsync,
   getPrimaryPurchaseInstructionAsync,
@@ -38,10 +43,14 @@ import {
   getPublishEventInstructionAsync,
   type AddTierAsyncInput,
   type AuthorizeStaffAsyncInput,
+  type BuyResaleCoreAsyncInput,
+  type CancelListingCoreAsyncInput,
   type ConsumeCheckInAsyncInput,
   type ConsumeCheckInCoreAsyncInput,
   type CreateEventAsyncInput,
+  type GiftTicketCoreAsyncInput,
   type InitializePlatformAsyncInput,
+  type ListTicketCoreAsyncInput,
   type PresentCheckInAsyncInput,
   type PresentCheckInCoreAsyncInput,
   type PrimaryPurchaseAsyncInput,
@@ -94,8 +103,13 @@ export type ConsumeCheckInOperation = Omit<ConsumeCheckInAsyncInput, 'staff'>;
 export type PrimaryPurchaseCoreOperation = Omit<PrimaryPurchaseCoreAsyncInput, 'buyer'>;
 export type PresentCheckInCoreOperation = Omit<PresentCheckInCoreAsyncInput, 'holder'>;
 export type ConsumeCheckInCoreOperation = Omit<ConsumeCheckInCoreAsyncInput, 'staff'>;
+export type GiftTicketCoreOperation = Omit<GiftTicketCoreAsyncInput, 'currentOwner'>;
+export type ListTicketCoreOperation = Omit<ListTicketCoreAsyncInput, 'seller'>;
+export type CancelListingCoreOperation = Omit<CancelListingCoreAsyncInput, 'seller'>;
+export type BuyResaleCoreOperation = Omit<BuyResaleCoreAsyncInput, 'buyer'>;
 
 const EVENT_ACCOUNT_SIZE = 443n;
+const LISTING_ACCOUNT_SIZE = 168n;
 const TICKET_RECORD_ACCOUNT_SIZE = 254n;
 const TIER_ACCOUNT_SIZE = 120n;
 
@@ -273,6 +287,13 @@ export class CodamaProgramAdapter {
     return accounts.filter((account) => account.exists);
   }
 
+  async listListings() {
+    const addresses = await this.getProgramAccountAddresses(LISTING_ACCOUNT_SIZE);
+    if (addresses.length === 0) return [];
+    const accounts = await fetchAllMaybeListing(this.rpc, addresses, { commitment: 'confirmed' });
+    return accounts.filter((account) => account.exists);
+  }
+
   async fetchTier(tier: Address) {
     return fetchMaybeTier(this.rpc, tier, { commitment: 'confirmed' });
   }
@@ -386,6 +407,22 @@ export class CodamaProgramAdapter {
     );
   }
 
+  async waitForTicketOwner(
+    ticketRecord: Address,
+    expectedOwner: Address,
+    attempts = 20,
+  ): Promise<void> {
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      const ticket = await this.fetchTicketRecord(ticketRecord);
+      if (ticket.exists && ticket.data.owner === expectedOwner) return;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    throw new GatewayError(
+      'CONFIRMATION_TIMEOUT',
+      'La transacción fue enviada, pero el nuevo owner no alcanzó confirmación.',
+    );
+  }
+
   async buildInitializePlatform(input: InitializePlatformOperation): Promise<Instruction> {
     return getInitializePlatformInstructionAsync({
       ...input,
@@ -430,6 +467,34 @@ export class CodamaProgramAdapter {
 
   async buildPrimaryPurchaseCore(input: PrimaryPurchaseCoreOperation): Promise<Instruction> {
     return getPrimaryPurchaseCoreInstructionAsync({
+      ...input,
+      buyer: instructionSigner(this.requireWallet()),
+    });
+  }
+
+  async buildGiftTicketCore(input: GiftTicketCoreOperation): Promise<Instruction> {
+    return getGiftTicketCoreInstructionAsync({
+      ...input,
+      currentOwner: instructionSigner(this.requireWallet()),
+    });
+  }
+
+  async buildListTicketCore(input: ListTicketCoreOperation): Promise<Instruction> {
+    return getListTicketCoreInstructionAsync({
+      ...input,
+      seller: instructionSigner(this.requireWallet()),
+    });
+  }
+
+  async buildCancelListingCore(input: CancelListingCoreOperation): Promise<Instruction> {
+    return getCancelListingCoreInstructionAsync({
+      ...input,
+      seller: instructionSigner(this.requireWallet()),
+    });
+  }
+
+  async buildBuyResaleCore(input: BuyResaleCoreOperation): Promise<Instruction> {
+    return getBuyResaleCoreInstructionAsync({
       ...input,
       buyer: instructionSigner(this.requireWallet()),
     });

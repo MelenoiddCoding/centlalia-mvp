@@ -21,6 +21,25 @@ const PROGRAM_ERRORS: Array<[RegExp, string]> = [
     /\b(?:6034|0x1792|StaffNotAuthorized)\b/i,
     'La wallet de staff no está autorizada para este evento.',
   ],
+  [
+    /\b(?:6014|0x177e|TransferClosed)\b/i,
+    'La circulación cerró al comenzar el check-in. Este boleto ya no puede regalarse ni revenderse.',
+  ],
+  [/\b(?:6026|0x178a|SameOwner)\b/i, 'La wallet destinataria ya es propietaria de este boleto.'],
+  [
+    /\b(?:6028|0x178c|InvalidResalePrice)\b/i,
+    'El precio supera el límite de reventa configurado por el evento.',
+  ],
+  [
+    /\b(?:6030|0x178e|ListingNotActive)\b/i,
+    'El listing ya no está activo. Actualiza el marketplace.',
+  ],
+  [/\b(?:6031|0x178f|ListingExpired)\b/i, 'El listing expiró y ya no puede comprarse.'],
+  [/\b(?:6032|0x1790|SellerCannotBuy)\b/i, 'No puedes comprar tu propio listing.'],
+  [
+    /\b(?:6041|0x1799|ActiveIntentExists)\b/i,
+    'Cancela o deja expirar la presentación de acceso antes de transferir el boleto.',
+  ],
 ];
 
 function collectErrorText(error: unknown, seen = new Set<unknown>()): string[] {

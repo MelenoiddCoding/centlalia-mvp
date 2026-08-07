@@ -80,6 +80,11 @@ El programa separa tarifa de plataforma, regalía del organizador y límite de r
 
 El programa conserva `ManagedAsset` para compatibilidad y pruebas, y añade una vertical MPL Core aditiva. `primary_purchase_core` crea el activo mediante CPI en la misma transacción que cobra y registra el ticket; un `PermanentFreezeDelegate` controlado por la autoridad PDA impide transferencias fuera de política. Presentación y consumo leen directamente owner y update authority del activo Core antes de cambiar el acceso.
 
+Regalo y reventa usan el mismo activo Core, no un registro paralelo. El programa descongela,
+transfiere y vuelve a congelar por CPI de forma atómica; para listings instala un
+`TransferDelegate` temporal controlado por el PDA. Precio máximo, expiración, reparto de
+pagos, owner, estado e intents activos se validan on-chain.
+
 Regenera el cliente únicamente desde el IDL versionado:
 
 ```powershell
@@ -102,5 +107,10 @@ Las métricas de usuarios permanecen pendientes hasta ejecutar sesiones reales. 
 ## Estado de publicación
 
 El programa `6KVngKJVYYbqfeXxzXdnaZzmKwo58iin8LmiMyZjgpbu` está actualizado en devnet y `PlatformConfig` usa `MplCore`. La [CI 29909723805](https://github.com/MelenoiddCoding/centlalia-mvp/actions/runs/29909723805) aprobó build SBF y E2E multiwallet con el programa Core oficial, incluida la transferencia directa rechazada. La [web pública](https://web-two-amber-35.vercel.app) expone la vertical; falta ejecutar y documentar el recorrido con tres wallets reales antes de llamarlo validación de usuario. Ninguna credencial o keypair se guarda en Git.
+
+El sprint de circulación Core está validado en host y su harness SBF está versionado, pero
+aún no se ha actualizado el programa devnet ni la web pública con estas instrucciones. El
+despliegue se mantiene bloqueado hasta recuperar y verificar la upgrade authority, ejecutar
+CI/local-validator y obtener firmas devnet de regalo y reventa.
 
 Consulta [SECURITY.md](SECURITY.md) antes de operar el programa. El software no ha sido auditado y no debe utilizarse en mainnet.

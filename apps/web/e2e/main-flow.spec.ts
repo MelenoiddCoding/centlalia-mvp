@@ -23,6 +23,7 @@ test('expone el marketplace y protege las herramientas de organizer', async ({ p
     'aria-current',
     'page',
   );
+  await expect(page.getByRole('heading', { name: 'Reventa con precio limitado' })).toBeVisible();
 
   await page.getByRole('link', { name: 'Crear evento' }).click();
   await expect(page).toHaveURL(/\/organizer\/events\/new$/);

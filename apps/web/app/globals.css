@@ -3244,6 +3244,175 @@ code {
   cursor: pointer;
 }
 
+.circulation-panel {
+  display: grid;
+  gap: 0.65rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+}
+
+.circulation-panel.listed {
+  padding: 0.85rem;
+  border: 1px solid var(--amber-deep);
+  background: rgb(218 119 28 / 0.08);
+}
+
+.circulation-panel > span,
+.circulation-panel label span,
+.circulation-panel small {
+  color: var(--ink-soft);
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+
+.circulation-panel > strong {
+  font-family: var(--font-display), serif;
+  font-size: 1.35rem;
+}
+
+.circulation-switcher {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+
+.circulation-switcher button:first-child {
+  background: transparent;
+  color: var(--ink);
+}
+
+.circulation-panel form,
+.circulation-panel label {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.circulation-panel input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+}
+
+.resale-ledger {
+  padding: 2.5rem 3rem 5rem;
+  background:
+    linear-gradient(90deg, rgb(47 100 75 / 0.07) 1px, transparent 1px), var(--paper-light);
+  background-size: 42px 42px;
+  border-top: 1px solid var(--ink);
+}
+
+.resale-ledger > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.resale-ledger h2 {
+  margin: 0.25rem 0 0;
+  font-family: var(--font-display), serif;
+  font-size: clamp(2rem, 4vw, 3.75rem);
+  letter-spacing: -0.045em;
+}
+
+.resale-ledger > header > span {
+  color: var(--ink-soft);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.resale-rows {
+  border-top: 1px solid var(--ink);
+}
+
+.resale-row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) minmax(180px, 0.35fr) 170px;
+  gap: 1.25rem;
+  align-items: center;
+  min-height: 132px;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.resale-mark {
+  display: grid;
+  width: 64px;
+  aspect-ratio: 1;
+  place-items: center;
+  background: var(--green);
+  color: var(--paper-light);
+  font-family: var(--font-display), serif;
+  font-size: 2.5rem;
+}
+
+.resale-row h3 {
+  margin: 0.25rem 0;
+  font-family: var(--font-display), serif;
+  font-size: clamp(1.45rem, 2.5vw, 2.2rem);
+}
+
+.resale-row p,
+.resale-row small,
+.resale-price span {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.7rem;
+}
+
+.resale-row > div,
+.resale-price {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.resale-price strong {
+  font-family: var(--font-display), serif;
+  font-size: 1.45rem;
+}
+
+.resale-row > button {
+  min-height: 48px;
+  border: 0;
+  background: var(--amber);
+  color: var(--ink);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.resale-row > button:disabled,
+.circulation-panel button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+@media (max-width: 820px) {
+  .resale-ledger {
+    padding: 2rem 1.25rem 4rem;
+  }
+
+  .resale-ledger > header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .resale-row {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .resale-price,
+  .resale-row > button {
+    grid-column: 2;
+  }
+}
+
 .access-pass {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 400px);

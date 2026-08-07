@@ -84,4 +84,6 @@ pub enum TicketingError {
     ArithmeticOverflow,
     #[msg("A published event with issued tickets requires a refund policy before cancellation")]
     EventHasTickets,
+    #[msg("The ticket has an active check-in intent")]
+    ActiveIntentExists,
 }

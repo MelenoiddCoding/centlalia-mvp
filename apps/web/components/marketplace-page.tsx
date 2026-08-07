@@ -7,9 +7,45 @@ import { eventStatusLabel, formatDate, formatSol, shortAddress } from '@/lib/onc
 import { useSolanaApp } from '@/providers/solana-app-provider';
 
 export function MarketplacePage() {
-  const { events, tiers, loading, refresh } = useSolanaApp();
+  const { adapter, events, execute, listings, loading, pending, refresh, tickets, tiers, wallet } =
+    useSolanaApp();
   const published = events.filter((event) => event.data.status === generated.EventStatus.Published);
   const [now] = useState(() => BigInt(Math.floor(Date.now() / 1_000)));
+  const activeListings = listings.filter((listing) => {
+    const ticket = tickets.find((item) => item.address === listing.data.ticket);
+    const event = events.find((item) => item.address === listing.data.event);
+    return (
+      listing.data.status === generated.ListingStatus.Active &&
+      listing.data.expiresAt.__option === 'Some' &&
+      listing.data.expiresAt.value > now &&
+      ticket?.data.status === generated.TicketStatus.Listed &&
+      event?.data.status === generated.EventStatus.Published &&
+      now < event.data.checkInStartAt
+    );
+  });
+
+  async function buyResale(listingAddress: string) {
+    if (!wallet) return;
+    const listing = activeListings.find((item) => item.address === listingAddress);
+    if (!listing) return;
+    const ticket = tickets.find((item) => item.address === listing.data.ticket);
+    const event = events.find((item) => item.address === listing.data.event);
+    if (!ticket || !event) return;
+    await execute('Compra de reventa Core', async () => {
+      const instruction = await adapter.buildBuyResaleCore({
+        event: event.address,
+        ticketRecord: ticket.address,
+        listing: listing.address,
+        seller: listing.data.seller,
+        organizer: event.data.organizer,
+        treasury: event.data.platformTreasury,
+        coreAsset: ticket.data.assetId,
+      });
+      const signature = await adapter.sendInstructions([instruction]);
+      await adapter.waitForTicketOwner(ticket.address, wallet.address);
+      return signature;
+    });
+  }
 
   return (
     <div className="marketplace-page page-enter">
@@ -79,6 +115,63 @@ export function MarketplacePage() {
             );
           })}
         </div>
+      </section>
+
+      <section className="resale-ledger" aria-labelledby="resale-heading">
+        <header>
+          <div>
+            <p className="eyebrow">Mercado secundario · MPL Core</p>
+            <h2 id="resale-heading">Reventa con precio limitado</h2>
+          </div>
+          <span>{String(activeListings.length).padStart(2, '0')} listings activos</span>
+        </header>
+        {activeListings.length === 0 ? (
+          <p className="product-empty">
+            No hay boletos en reventa. Los listings aparecen aquí directamente desde el programa.
+          </p>
+        ) : (
+          <div className="resale-rows">
+            {activeListings.map((listing) => {
+              const ticket = tickets.find((item) => item.address === listing.data.ticket);
+              const event = events.find((item) => item.address === listing.data.event);
+              const tier = ticket
+                ? tiers.find((item) => item.address === ticket.data.tier)
+                : undefined;
+              if (!ticket || !event) return null;
+              const ownListing = wallet?.address === listing.data.seller;
+              return (
+                <article className="resale-row" key={listing.address}>
+                  <span className="resale-mark" aria-hidden="true">
+                    {event.data.title.slice(0, 1)}
+                  </span>
+                  <div>
+                    <span className="status-word live">Delegación verificada</span>
+                    <h3>{event.data.title}</h3>
+                    <p>
+                      {tier?.data.name ?? 'Acceso'} · #
+                      {ticket.data.serial.toString().padStart(4, '0')}
+                    </p>
+                    <small>Vende {shortAddress(listing.data.seller)}</small>
+                  </div>
+                  <div className="resale-price">
+                    <span>Precio protegido</span>
+                    <strong>{formatSol(listing.data.priceLamports)}</strong>
+                    {listing.data.expiresAt.__option === 'Some' ? (
+                      <small>Expira {formatDate(listing.data.expiresAt.value)}</small>
+                    ) : null}
+                  </div>
+                  <button
+                    disabled={!wallet || ownListing || Boolean(pending)}
+                    onClick={() => void buyResale(listing.address)}
+                    type="button"
+                  >
+                    {!wallet ? 'Conecta wallet' : ownListing ? 'Tu listing' : 'Comprar reventa'}
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        )}
       </section>
     </div>
   );

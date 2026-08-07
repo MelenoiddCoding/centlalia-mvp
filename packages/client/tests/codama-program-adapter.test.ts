@@ -120,9 +120,37 @@ describe('CodamaProgramAdapter', () => {
         coreAsset: anotherAddress,
         checkInIntent,
       }),
+      adapter.buildGiftTicketCore({
+        event,
+        ticketRecord,
+        coreAsset: anotherAddress,
+        recipient: anotherAddress,
+      }),
+      adapter.buildListTicketCore({
+        event,
+        ticketRecord,
+        coreAsset: anotherAddress,
+        listingId: 0,
+        priceLamports: 110_000_000n,
+        expiresAt: 2_400n,
+      }),
+      adapter.buildCancelListingCore({
+        ticketRecord,
+        listing: anotherAddress,
+        coreAsset: anotherAddress,
+      }),
+      adapter.buildBuyResaleCore({
+        event,
+        ticketRecord,
+        listing: anotherAddress,
+        seller: anotherAddress,
+        organizer: anotherAddress,
+        treasury: anotherAddress,
+        coreAsset: anotherAddress,
+      }),
     ]);
 
-    expect(instructions).toHaveLength(11);
+    expect(instructions).toHaveLength(15);
     expect(
       instructions.every(
         (instruction) => instruction.programAddress === CENTLALIA_TICKETING_PROGRAM_ADDRESS,

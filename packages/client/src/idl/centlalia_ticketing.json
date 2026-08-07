@@ -213,6 +213,80 @@
       "args": []
     },
     {
+      "name": "buy_resale_core",
+      "discriminator": [89, 180, 145, 57, 141, 122, 23, 222],
+      "accounts": [
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event"
+        },
+        {
+          "name": "ticket_record",
+          "writable": true
+        },
+        {
+          "name": "listing",
+          "writable": true
+        },
+        {
+          "name": "seller",
+          "writable": true
+        },
+        {
+          "name": "organizer",
+          "writable": true,
+          "relations": ["event"]
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "core_asset",
+          "writable": true
+        },
+        {
+          "name": "asset_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121]
+              },
+              {
+                "kind": "account",
+                "path": "platform_config"
+              }
+            ]
+          }
+        },
+        {
+          "name": "core_program",
+          "address": "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "cancel_check_in",
       "discriminator": [90, 228, 52, 216, 156, 213, 27, 20],
       "accounts": [
@@ -284,6 +358,64 @@
         {
           "name": "listing",
           "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel_listing_core",
+      "discriminator": [121, 19, 72, 243, 73, 39, 91, 219],
+      "accounts": [
+        {
+          "name": "seller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "ticket_record",
+          "writable": true
+        },
+        {
+          "name": "listing",
+          "writable": true
+        },
+        {
+          "name": "core_asset",
+          "writable": true
+        },
+        {
+          "name": "asset_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121]
+              },
+              {
+                "kind": "account",
+                "path": "platform_config"
+              }
+            ]
+          }
+        },
+        {
+          "name": "core_program",
+          "address": "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
@@ -610,6 +742,66 @@
       "args": []
     },
     {
+      "name": "gift_ticket_core",
+      "discriminator": [117, 170, 170, 254, 138, 219, 254, 116],
+      "accounts": [
+        {
+          "name": "current_owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "recipient"
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event"
+        },
+        {
+          "name": "ticket_record",
+          "writable": true
+        },
+        {
+          "name": "core_asset",
+          "writable": true
+        },
+        {
+          "name": "asset_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121]
+              },
+              {
+                "kind": "account",
+                "path": "platform_config"
+              }
+            ]
+          }
+        },
+        {
+          "name": "core_program",
+          "address": "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "initialize_platform",
       "discriminator": [119, 201, 101, 45, 75, 122, 89, 3],
       "accounts": [
@@ -751,6 +943,96 @@
               }
             ]
           }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "listing_id",
+          "type": "u32"
+        },
+        {
+          "name": "price_lamports",
+          "type": "u64"
+        },
+        {
+          "name": "expires_at",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "list_ticket_core",
+      "discriminator": [22, 50, 102, 68, 2, 50, 19, 50],
+      "accounts": [
+        {
+          "name": "seller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [112, 108, 97, 116, 102, 111, 114, 109]
+              }
+            ]
+          }
+        },
+        {
+          "name": "event"
+        },
+        {
+          "name": "ticket_record",
+          "writable": true
+        },
+        {
+          "name": "core_asset",
+          "writable": true
+        },
+        {
+          "name": "asset_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121]
+              },
+              {
+                "kind": "account",
+                "path": "platform_config"
+              }
+            ]
+          }
+        },
+        {
+          "name": "listing",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [108, 105, 115, 116, 105, 110, 103]
+              },
+              {
+                "kind": "account",
+                "path": "ticket_record"
+              },
+              {
+                "kind": "arg",
+                "path": "listing_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "core_program",
+          "address": "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"
         },
         {
           "name": "system_program",
@@ -1636,6 +1918,11 @@
       "code": 6040,
       "name": "EventHasTickets",
       "msg": "A published event with issued tickets requires a refund policy before cancellation"
+    },
+    {
+      "code": 6041,
+      "name": "ActiveIntentExists",
+      "msg": "The ticket has an active check-in intent"
     }
   ],
   "types": [

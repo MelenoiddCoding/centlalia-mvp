@@ -96,8 +96,11 @@ export const CENTLALIA_TICKETING_ERROR__INTENT_NOT_EXPIRED = 0x1796; // 6038
 export const CENTLALIA_TICKETING_ERROR__ARITHMETIC_OVERFLOW = 0x1797; // 6039
 /** EventHasTickets: A published event with issued tickets requires a refund policy before cancellation */
 export const CENTLALIA_TICKETING_ERROR__EVENT_HAS_TICKETS = 0x1798; // 6040
+/** ActiveIntentExists: The ticket has an active check-in intent */
+export const CENTLALIA_TICKETING_ERROR__ACTIVE_INTENT_EXISTS = 0x1799; // 6041
 
 export type CentlaliaTicketingError =
+  | typeof CENTLALIA_TICKETING_ERROR__ACTIVE_INTENT_EXISTS
   | typeof CENTLALIA_TICKETING_ERROR__ARITHMETIC_OVERFLOW
   | typeof CENTLALIA_TICKETING_ERROR__ASSET_OWNER_MISMATCH
   | typeof CENTLALIA_TICKETING_ERROR__CHECK_IN_CLOSED
@@ -143,6 +146,7 @@ export type CentlaliaTicketingError =
 let centlaliaTicketingErrorMessages: Record<CentlaliaTicketingError, string> | undefined;
 if (process.env['NODE_ENV'] !== 'production') {
   centlaliaTicketingErrorMessages = {
+    [CENTLALIA_TICKETING_ERROR__ACTIVE_INTENT_EXISTS]: `The ticket has an active check-in intent`,
     [CENTLALIA_TICKETING_ERROR__ARITHMETIC_OVERFLOW]: `Arithmetic overflow`,
     [CENTLALIA_TICKETING_ERROR__ASSET_OWNER_MISMATCH]: `The canonical asset owner and ticket owner differ`,
     [CENTLALIA_TICKETING_ERROR__CHECK_IN_CLOSED]: `The event check-in window is closed`,

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { generated } from '@centlalia/client';
 import { CheckInEvidenceList } from '@/components/check-in-evidence-list';
+import { TicketCirculationActions } from '@/components/ticket-circulation-actions';
 import { useCheckInEvidence } from '@/hooks/use-check-in-evidence';
 import {
   parseCheckInPayload,
@@ -37,7 +38,8 @@ interface DasAsset {
 }
 
 export function MyTicketsPage() {
-  const { wallet, tickets, events, tiers, adapter, execute, pending, loading } = useSolanaApp();
+  const { wallet, tickets, events, listings, tiers, adapter, execute, pending, loading } =
+    useSolanaApp();
   const { evidence, recordEvidence } = useCheckInEvidence();
   const [payload, setPayload] = useState<CheckInPayload>();
   const [qrDataUrl, setQrDataUrl] = useState('');
@@ -210,6 +212,11 @@ export function MyTicketsPage() {
           const event = events.find((item) => item.address === ticket.data.event);
           const tier = tiers.find((item) => item.address === ticket.data.tier);
           const dasAsset = dasAssets.get(ticket.data.assetId);
+          const activeListing = listings.find(
+            (item) =>
+              item.data.ticket === ticket.address &&
+              item.data.status === generated.ListingStatus.Active,
+          );
           const now = BigInt(currentTimestamp);
           const checkInNotStarted = event ? now < event.data.checkInStartAt : false;
           const checkInEnded = event ? now >= event.data.checkInEndAt : false;
@@ -280,6 +287,7 @@ export function MyTicketsPage() {
                 >
                   {buttonLabel}
                 </button>
+                <TicketCirculationActions event={event} listing={activeListing} ticket={ticket} />
               </div>
             </article>
           );

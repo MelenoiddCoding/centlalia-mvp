@@ -1,6 +1,6 @@
 # Evidencia de la vertical MPL Core
 
-Fecha de corte: 2026-07-23
+Fecha de corte: 2026-08-06
 
 ## Objetivo de validación
 
@@ -70,5 +70,19 @@ Transacciones finalizadas:
 4. [Consumo por staff](https://explorer.solana.com/tx/3aZAhv6RF9iiZCLWLE27CAgCxyEWFMCPQdxExckq7C8rFnfqKaGiS6RhYpJFw6UAazQgn3SavyYdhpg8BuvrziKY?cluster=devnet).
 
 El intento duplicado de esa sesión fue detenido en preflight y no produjo firma pública. La web actualizada envía el siguiente intento con `skipPreflight` y solo lo registra si el RPC confirma exactamente `IntentNotPending (6036)`; un rechazo de wallet, timeout u otro error ya no cuenta como evidencia.
+
+## Sprint de circulación Core
+
+El código agrega regalo, alta y cancelación de listing, y compra de reventa para el activo
+MPL Core real. Las cuatro operaciones hacen CPI contra Core y mantienen sincronizados
+`TicketRecord`, owner del asset y `Listing`. La reventa usa un `TransferDelegate` temporal
+controlado por `AssetAuthority`; el programa descongela, transfiere y vuelve a congelar en
+la misma transacción. Un intent de check-in activo bloquea regalo y listing.
+
+Al corte de este documento pasan localmente lint, typecheck, build, 31 pruebas TypeScript,
+10 escenarios Playwright en desktop/mobile, 27 pruebas Rust, `cargo check`, fmt y Clippy.
+El harness SBF incluye regalo, reventa y cancelación, pero su ejecución en local-validator
+Linux y el upgrade de devnet siguen pendientes. Por ello todavía no se atribuyen firmas
+públicas de circulación Core ni se publica la UI nueva en producción.
 
 Después del gate técnico se observarán tiempos, errores, comprensión de wallet y valor percibido. Si los usuarios no valoran propiedad verificable o política compartida frente a QR/lista privada, la hipótesis Solana debe refutarse o reducirse.

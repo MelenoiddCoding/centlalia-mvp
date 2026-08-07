@@ -14,6 +14,7 @@ import { describeSolanaError } from '@/lib/solana-error';
 const DEVNET_RPC = 'https://api.devnet.solana.com';
 
 export type CatalogEvent = Awaited<ReturnType<CodamaProgramAdapter['listEvents']>>[number];
+export type CatalogListing = Awaited<ReturnType<CodamaProgramAdapter['listListings']>>[number];
 export type CatalogTier = Awaited<ReturnType<CodamaProgramAdapter['listTiers']>>[number];
 export type CatalogTicket = Awaited<ReturnType<CodamaProgramAdapter['listTicketRecords']>>[number];
 
@@ -26,6 +27,7 @@ interface AppNotice {
 interface SolanaAppContextValue {
   adapter: CodamaProgramAdapter;
   events: CatalogEvent[];
+  listings: CatalogListing[];
   tiers: CatalogTier[];
   tickets: CatalogTicket[];
   loading: boolean;
@@ -45,6 +47,7 @@ export function SolanaAppProvider({ children }: { children: ReactNode }) {
   const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? DEVNET_RPC;
   const [adapter] = useState(() => new CodamaProgramAdapter({ rpcUrl }));
   const [events, setEvents] = useState<CatalogEvent[]>([]);
+  const [listings, setListings] = useState<CatalogListing[]>([]);
   const [tiers, setTiers] = useState<CatalogTier[]>([]);
   const [tickets, setTickets] = useState<CatalogTicket[]>([]);
   const [wallets, setWallets] = useState<WalletDescriptor[]>([]);
@@ -56,12 +59,14 @@ export function SolanaAppProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [nextEvents, nextTiers, nextTickets] = await Promise.all([
+      const [nextEvents, nextListings, nextTiers, nextTickets] = await Promise.all([
         adapter.listEvents(),
+        adapter.listListings(),
         adapter.listTiers(),
         adapter.listTicketRecords(),
       ]);
       setEvents(nextEvents.sort((a, b) => Number(b.data.startsAt - a.data.startsAt)));
+      setListings(nextListings.sort((a, b) => Number(b.data.createdAt - a.data.createdAt)));
       setTiers(nextTiers);
       setTickets(nextTickets.sort((a, b) => Number(b.data.createdAt - a.data.createdAt)));
     } catch (error) {
@@ -137,6 +142,7 @@ export function SolanaAppProvider({ children }: { children: ReactNode }) {
       value={{
         adapter,
         events,
+        listings,
         tiers,
         tickets,
         loading,

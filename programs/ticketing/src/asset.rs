@@ -1,9 +1,13 @@
 use anchor_lang::prelude::*;
 use mpl_core::{
     accounts::BaseAssetV1,
-    instructions::CreateV2CpiBuilder,
+    instructions::{
+        AddPluginV1CpiBuilder, CreateV2CpiBuilder, RemovePluginV1CpiBuilder, TransferV1CpiBuilder,
+        UpdatePluginV1CpiBuilder,
+    },
     types::{
-        PermanentFreezeDelegate, Plugin, PluginAuthority, PluginAuthorityPair, UpdateAuthority,
+        PermanentFreezeDelegate, Plugin, PluginAuthority, PluginAuthorityPair, PluginType,
+        TransferDelegate, UpdateAuthority,
     },
 };
 
@@ -126,6 +130,75 @@ pub fn verify_core_asset(
     Ok(())
 }
 
+pub struct CoreAssetMutation<'a, 'info> {
+    pub core_program: &'a AccountInfo<'info>,
+    pub asset: &'a AccountInfo<'info>,
+    pub payer: &'a AccountInfo<'info>,
+    pub authority: &'a AccountInfo<'info>,
+    pub system_program: &'a AccountInfo<'info>,
+}
+
+pub fn add_core_transfer_delegate(
+    accounts: CoreAssetMutation<'_, '_>,
+    delegate: Pubkey,
+) -> Result<()> {
+    AddPluginV1CpiBuilder::new(accounts.core_program)
+        .asset(accounts.asset)
+        .payer(accounts.payer)
+        .authority(Some(accounts.authority))
+        .system_program(accounts.system_program)
+        .plugin(Plugin::TransferDelegate(TransferDelegate {}))
+        .init_authority(PluginAuthority::Address { address: delegate })
+        .invoke()?;
+    Ok(())
+}
+
+pub fn remove_core_transfer_delegate(
+    accounts: CoreAssetMutation<'_, '_>,
+    authority_signer: &[&[u8]],
+) -> Result<()> {
+    RemovePluginV1CpiBuilder::new(accounts.core_program)
+        .asset(accounts.asset)
+        .payer(accounts.payer)
+        .authority(Some(accounts.authority))
+        .system_program(accounts.system_program)
+        .plugin_type(PluginType::TransferDelegate)
+        .invoke_signed(&[authority_signer])?;
+    Ok(())
+}
+
+pub fn set_core_asset_frozen(
+    accounts: CoreAssetMutation<'_, '_>,
+    frozen: bool,
+    authority_signer: &[&[u8]],
+) -> Result<()> {
+    UpdatePluginV1CpiBuilder::new(accounts.core_program)
+        .asset(accounts.asset)
+        .payer(accounts.payer)
+        .authority(Some(accounts.authority))
+        .system_program(accounts.system_program)
+        .plugin(Plugin::PermanentFreezeDelegate(PermanentFreezeDelegate {
+            frozen,
+        }))
+        .invoke_signed(&[authority_signer])?;
+    Ok(())
+}
+
+pub fn transfer_core_asset<'a, 'info>(
+    accounts: CoreAssetMutation<'a, 'info>,
+    new_owner: &'a AccountInfo<'info>,
+    transfer_signers: &[&[&[u8]]],
+) -> Result<()> {
+    TransferV1CpiBuilder::new(accounts.core_program)
+        .asset(accounts.asset)
+        .payer(accounts.payer)
+        .authority(Some(accounts.authority))
+        .new_owner(new_owner)
+        .system_program(Some(accounts.system_program))
+        .invoke_signed(transfer_signers)?;
+    Ok(())
+}
+
 /// Moves canonical ownership and its access record together. No instruction may
 /// update `TicketRecord.owner` without passing through this boundary.
 pub fn transfer_managed_asset(
@@ -133,8 +206,13 @@ pub fn transfer_managed_asset(
     ticket: &mut TicketRecord,
     new_owner: Pubkey,
 ) -> Result<()> {
-    require_keys_neq!(ticket.owner, new_owner, TicketingError::SameOwner);
+    transfer_ticket_owner(ticket, new_owner)?;
     asset.owner = new_owner;
+    Ok(())
+}
+
+pub fn transfer_ticket_owner(ticket: &mut TicketRecord, new_owner: Pubkey) -> Result<()> {
+    require_keys_neq!(ticket.owner, new_owner, TicketingError::SameOwner);
     ticket.owner = new_owner;
     ticket.transfer_count = ticket
         .transfer_count
@@ -239,6 +317,17 @@ mod tests {
             created_at: 0,
         };
         assert!(transfer_managed_asset(&mut asset, &mut ticket, owner).is_err());
+    }
+
+    #[test]
+    fn core_record_transfer_changes_owner_and_counter() {
+        let owner = Pubkey::new_unique();
+        let recipient = Pubkey::new_unique();
+        let mut ticket = ticket(owner, Pubkey::new_unique());
+        ticket.asset_standard = AssetStandard::MplCore;
+        transfer_ticket_owner(&mut ticket, recipient).unwrap();
+        assert_eq!(ticket.owner, recipient);
+        assert_eq!(ticket.transfer_count, 1);
     }
 
     #[test]

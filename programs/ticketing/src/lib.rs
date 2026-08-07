@@ -104,6 +104,10 @@ pub mod centlalia_ticketing {
         instructions::gift_ticket(ctx)
     }
 
+    pub fn gift_ticket_core(ctx: Context<GiftTicketCore>) -> Result<()> {
+        instructions::gift_ticket_core(ctx)
+    }
+
     pub fn list_ticket(
         ctx: Context<ListTicket>,
         listing_id: u32,
@@ -113,12 +117,29 @@ pub mod centlalia_ticketing {
         instructions::list_ticket(ctx, listing_id, price_lamports, expires_at)
     }
 
+    pub fn list_ticket_core(
+        ctx: Context<ListTicketCore>,
+        listing_id: u32,
+        price_lamports: u64,
+        expires_at: i64,
+    ) -> Result<()> {
+        instructions::list_ticket_core(ctx, listing_id, price_lamports, expires_at)
+    }
+
     pub fn cancel_listing(ctx: Context<CancelListing>) -> Result<()> {
         instructions::cancel_listing(ctx)
     }
 
+    pub fn cancel_listing_core(ctx: Context<CancelListingCore>) -> Result<()> {
+        instructions::cancel_listing_core(ctx)
+    }
+
     pub fn buy_resale(ctx: Context<BuyResale>) -> Result<()> {
         instructions::buy_resale(ctx)
+    }
+
+    pub fn buy_resale_core(ctx: Context<BuyResaleCore>) -> Result<()> {
+        instructions::buy_resale_core(ctx)
     }
 
     pub fn present_check_in(

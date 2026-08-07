@@ -28,4 +28,13 @@ describe('describeSolanaError', () => {
       'User rejected the request',
     );
   });
+
+  it('translates circulation policy errors', () => {
+    expect(describeSolanaError(new Error('custom program error: 0x178c'), 'Fallback')).toContain(
+      'límite de reventa',
+    );
+    expect(describeSolanaError(new Error('ActiveIntentExists'), 'Fallback')).toContain(
+      'presentación de acceso',
+    );
+  });
 });

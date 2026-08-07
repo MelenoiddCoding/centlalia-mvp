@@ -219,6 +219,80 @@ export type CentlaliaTicketing = {
       args: [];
     },
     {
+      name: 'buyResaleCore';
+      discriminator: [89, 180, 145, 57, 141, 122, 23, 222];
+      accounts: [
+        {
+          name: 'buyer';
+          writable: true;
+          signer: true;
+        },
+        {
+          name: 'platformConfig';
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [112, 108, 97, 116, 102, 111, 114, 109];
+              },
+            ];
+          };
+        },
+        {
+          name: 'event';
+        },
+        {
+          name: 'ticketRecord';
+          writable: true;
+        },
+        {
+          name: 'listing';
+          writable: true;
+        },
+        {
+          name: 'seller';
+          writable: true;
+        },
+        {
+          name: 'organizer';
+          writable: true;
+          relations: ['event'];
+        },
+        {
+          name: 'treasury';
+          writable: true;
+        },
+        {
+          name: 'coreAsset';
+          writable: true;
+        },
+        {
+          name: 'assetAuthority';
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121];
+              },
+              {
+                kind: 'account';
+                path: 'platformConfig';
+              },
+            ];
+          };
+        },
+        {
+          name: 'coreProgram';
+          address: 'CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d';
+        },
+        {
+          name: 'systemProgram';
+          address: '11111111111111111111111111111111';
+        },
+      ];
+      args: [];
+    },
+    {
       name: 'cancelCheckIn';
       discriminator: [90, 228, 52, 216, 156, 213, 27, 20];
       accounts: [
@@ -295,6 +369,64 @@ export type CentlaliaTicketing = {
       args: [];
     },
     {
+      name: 'cancelListingCore';
+      discriminator: [121, 19, 72, 243, 73, 39, 91, 219];
+      accounts: [
+        {
+          name: 'seller';
+          writable: true;
+          signer: true;
+        },
+        {
+          name: 'platformConfig';
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [112, 108, 97, 116, 102, 111, 114, 109];
+              },
+            ];
+          };
+        },
+        {
+          name: 'ticketRecord';
+          writable: true;
+        },
+        {
+          name: 'listing';
+          writable: true;
+        },
+        {
+          name: 'coreAsset';
+          writable: true;
+        },
+        {
+          name: 'assetAuthority';
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121];
+              },
+              {
+                kind: 'account';
+                path: 'platformConfig';
+              },
+            ];
+          };
+        },
+        {
+          name: 'coreProgram';
+          address: 'CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d';
+        },
+        {
+          name: 'systemProgram';
+          address: '11111111111111111111111111111111';
+        },
+      ];
+      args: [];
+    },
+    {
       name: 'closeEvent';
       discriminator: [117, 114, 193, 54, 49, 25, 75, 194];
       accounts: [
@@ -361,6 +493,76 @@ export type CentlaliaTicketing = {
               },
             ];
           };
+        },
+        {
+          name: 'assetAuthority';
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121];
+              },
+              {
+                kind: 'account';
+                path: 'platformConfig';
+              },
+            ];
+          };
+        },
+        {
+          name: 'staffAuthorization';
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [115, 116, 97, 102, 102];
+              },
+              {
+                kind: 'account';
+                path: 'event';
+              },
+              {
+                kind: 'account';
+                path: 'staff';
+              },
+            ];
+          };
+        },
+        {
+          name: 'checkInIntent';
+          writable: true;
+        },
+      ];
+      args: [];
+    },
+    {
+      name: 'consumeCheckInCore';
+      discriminator: [201, 35, 45, 50, 209, 65, 161, 78];
+      accounts: [
+        {
+          name: 'staff';
+          signer: true;
+        },
+        {
+          name: 'platformConfig';
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [112, 108, 97, 116, 102, 111, 114, 109];
+              },
+            ];
+          };
+        },
+        {
+          name: 'event';
+        },
+        {
+          name: 'ticketRecord';
+          writable: true;
+        },
+        {
+          name: 'coreAsset';
         },
         {
           name: 'assetAuthority';
@@ -546,6 +748,66 @@ export type CentlaliaTicketing = {
       args: [];
     },
     {
+      name: 'giftTicketCore';
+      discriminator: [117, 170, 170, 254, 138, 219, 254, 116];
+      accounts: [
+        {
+          name: 'currentOwner';
+          writable: true;
+          signer: true;
+        },
+        {
+          name: 'recipient';
+        },
+        {
+          name: 'platformConfig';
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [112, 108, 97, 116, 102, 111, 114, 109];
+              },
+            ];
+          };
+        },
+        {
+          name: 'event';
+        },
+        {
+          name: 'ticketRecord';
+          writable: true;
+        },
+        {
+          name: 'coreAsset';
+          writable: true;
+        },
+        {
+          name: 'assetAuthority';
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121];
+              },
+              {
+                kind: 'account';
+                path: 'platformConfig';
+              },
+            ];
+          };
+        },
+        {
+          name: 'coreProgram';
+          address: 'CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d';
+        },
+        {
+          name: 'systemProgram';
+          address: '11111111111111111111111111111111';
+        },
+      ];
+      args: [];
+    },
+    {
       name: 'initializePlatform';
       discriminator: [119, 201, 101, 45, 75, 122, 89, 3];
       accounts: [
@@ -709,6 +971,96 @@ export type CentlaliaTicketing = {
       ];
     },
     {
+      name: 'listTicketCore';
+      discriminator: [22, 50, 102, 68, 2, 50, 19, 50];
+      accounts: [
+        {
+          name: 'seller';
+          writable: true;
+          signer: true;
+        },
+        {
+          name: 'platformConfig';
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [112, 108, 97, 116, 102, 111, 114, 109];
+              },
+            ];
+          };
+        },
+        {
+          name: 'event';
+        },
+        {
+          name: 'ticketRecord';
+          writable: true;
+        },
+        {
+          name: 'coreAsset';
+          writable: true;
+        },
+        {
+          name: 'assetAuthority';
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121];
+              },
+              {
+                kind: 'account';
+                path: 'platformConfig';
+              },
+            ];
+          };
+        },
+        {
+          name: 'listing';
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [108, 105, 115, 116, 105, 110, 103];
+              },
+              {
+                kind: 'account';
+                path: 'ticketRecord';
+              },
+              {
+                kind: 'arg';
+                path: 'listingId';
+              },
+            ];
+          };
+        },
+        {
+          name: 'coreProgram';
+          address: 'CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d';
+        },
+        {
+          name: 'systemProgram';
+          address: '11111111111111111111111111111111';
+        },
+      ];
+      args: [
+        {
+          name: 'listingId';
+          type: 'u32';
+        },
+        {
+          name: 'priceLamports';
+          type: 'u64';
+        },
+        {
+          name: 'expiresAt';
+          type: 'i64';
+        },
+      ];
+    },
+    {
       name: 'presentCheckIn';
       discriminator: [26, 31, 84, 165, 124, 127, 126, 218];
       accounts: [
@@ -749,6 +1101,87 @@ export type CentlaliaTicketing = {
               },
             ];
           };
+        },
+        {
+          name: 'assetAuthority';
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121];
+              },
+              {
+                kind: 'account';
+                path: 'platformConfig';
+              },
+            ];
+          };
+        },
+        {
+          name: 'checkInIntent';
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [99, 104, 101, 99, 107, 45, 105, 110, 45, 105, 110, 116, 101, 110, 116];
+              },
+              {
+                kind: 'account';
+                path: 'ticketRecord';
+              },
+              {
+                kind: 'arg';
+                path: 'intentNonce';
+              },
+            ];
+          };
+        },
+        {
+          name: 'systemProgram';
+          address: '11111111111111111111111111111111';
+        },
+      ];
+      args: [
+        {
+          name: 'intentNonce';
+          type: 'u64';
+        },
+        {
+          name: 'expiresAt';
+          type: 'i64';
+        },
+      ];
+    },
+    {
+      name: 'presentCheckInCore';
+      discriminator: [60, 115, 205, 169, 119, 248, 7, 110];
+      accounts: [
+        {
+          name: 'holder';
+          writable: true;
+          signer: true;
+        },
+        {
+          name: 'platformConfig';
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [112, 108, 97, 116, 102, 111, 114, 109];
+              },
+            ];
+          };
+        },
+        {
+          name: 'event';
+        },
+        {
+          name: 'ticketRecord';
+          writable: true;
+        },
+        {
+          name: 'coreAsset';
         },
         {
           name: 'assetAuthority';
@@ -902,6 +1335,110 @@ export type CentlaliaTicketing = {
       ];
     },
     {
+      name: 'primaryPurchaseCore';
+      discriminator: [58, 175, 221, 83, 168, 159, 70, 236];
+      accounts: [
+        {
+          name: 'buyer';
+          writable: true;
+          signer: true;
+        },
+        {
+          name: 'platformConfig';
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [112, 108, 97, 116, 102, 111, 114, 109];
+              },
+            ];
+          };
+        },
+        {
+          name: 'event';
+          writable: true;
+        },
+        {
+          name: 'tier';
+          writable: true;
+        },
+        {
+          name: 'organizer';
+          writable: true;
+          relations: ['event'];
+        },
+        {
+          name: 'treasury';
+          writable: true;
+        },
+        {
+          name: 'ticketRecord';
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [116, 105, 99, 107, 101, 116];
+              },
+              {
+                kind: 'account';
+                path: 'event';
+              },
+              {
+                kind: 'arg';
+                path: 'ticketId';
+              },
+            ];
+          };
+        },
+        {
+          name: 'coreAsset';
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [99, 111, 114, 101, 45, 97, 115, 115, 101, 116];
+              },
+              {
+                kind: 'account';
+                path: 'ticketRecord';
+              },
+            ];
+          };
+        },
+        {
+          name: 'assetAuthority';
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [97, 115, 115, 101, 116, 45, 97, 117, 116, 104, 111, 114, 105, 116, 121];
+              },
+              {
+                kind: 'account';
+                path: 'platformConfig';
+              },
+            ];
+          };
+        },
+        {
+          name: 'coreProgram';
+          address: 'CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d';
+        },
+        {
+          name: 'systemProgram';
+          address: '11111111111111111111111111111111';
+        },
+      ];
+      args: [
+        {
+          name: 'ticketId';
+          type: 'u64';
+        },
+      ];
+    },
+    {
       name: 'publishEvent';
       discriminator: [66, 121, 175, 133, 20, 2, 221, 42];
       accounts: [
@@ -976,6 +1513,42 @@ export type CentlaliaTicketing = {
         },
       ];
       args: [];
+    },
+    {
+      name: 'setAssetStandard';
+      discriminator: [44, 210, 136, 166, 106, 18, 224, 43];
+      accounts: [
+        {
+          name: 'admin';
+          signer: true;
+          relations: ['platformConfig'];
+        },
+        {
+          name: 'platformConfig';
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: 'const';
+                value: [112, 108, 97, 116, 102, 111, 114, 109];
+              },
+            ];
+          };
+        },
+        {
+          name: 'treasury';
+        },
+      ];
+      args: [
+        {
+          name: 'assetStandard';
+          type: {
+            defined: {
+              name: 'assetStandard';
+            };
+          };
+        },
+      ];
     },
     {
       name: 'updateEvent';
@@ -1351,6 +1924,11 @@ export type CentlaliaTicketing = {
       code: 6040;
       name: 'eventHasTickets';
       msg: 'A published event with issued tickets requires a refund policy before cancellation';
+    },
+    {
+      code: 6041;
+      name: 'activeIntentExists';
+      msg: 'The ticket has an active check-in intent';
     },
   ];
   types: [

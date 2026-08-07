@@ -1,6 +1,6 @@
 # Cuentas on-chain y autoridades
 
-Fecha de corte: 2026-07-22
+Fecha de corte: 2026-08-06
 
 Este documento describe las cuentas que forman el registro de Centlalia, quien las crea,
 quien puede modificarlas y como se relacionan con el activo MPL Core. Las direcciones se
@@ -68,6 +68,22 @@ El `CoreAsset` es la evidencia interoperable de propiedad. En la vertical MPL Co
 Una instruccion Core no puede confiar solamente en `TicketRecord.owner`: vuelve a
 deserializar el activo MPL Core y comprueba owner, asset id y update authority.
 
+La circulacion Core conserva esa misma fuente de verdad:
+
+- `gift_ticket_core` descongela por CPI, transfiere con firma del holder, vuelve a
+  congelar y actualiza `TicketRecord` en una sola transaccion;
+- `list_ticket_core` instala un `TransferDelegate` normal cuya autoridad es
+  `AssetAuthority`; el activo permanece congelado y el `Listing` registra precio y
+  expiracion;
+- `buy_resale_core` valida limite, vigencia y pagos, descongela, transfiere mediante el
+  delegate y vuelve a congelar antes de actualizar owner y listing;
+- `cancel_listing_core` elimina el delegate y cancela el listing sin transferir propiedad.
+
+MPL Core revoca el `TransferDelegate` normal cuando ocurre la transferencia. El
+`PermanentFreezeDelegate` permanece bajo el PDA y evita que gift o reventa puedan evadir
+la policy. Regalo, compra de reventa y sus cambios de registro son atomicos: si cualquier
+CPI falla, no queda un owner parcial ni un pago separado del ticket.
+
 ## Autoridades por rol
 
 ### Admin
@@ -92,6 +108,7 @@ validan on-chain.
 
 - Firma la compra y paga la renta de `TicketRecord` y `CoreAsset`.
 - Es owner del activo Core emitido.
+- Firma regalos y la creacion o cancelacion de sus listings.
 - Firma `CheckInIntent`; staff no puede inventar una presentacion en su nombre.
 
 ### Staff
@@ -135,3 +152,8 @@ en la evidencia de esa sesion, no copiarse como constantes del proyecto.
 6. Solo staff activo consume el intent dentro de la ventana.
 7. Un segundo consumo falla con `IntentNotPending (6036)`.
 8. Una transferencia Core directa no puede saltarse la policy.
+9. Un regalo cambia owner Core y `TicketRecord.owner` en la misma transaccion.
+10. Una reventa respeta precio maximo y expiracion, reparte pagos y transfiere el Core
+    atomicamente.
+11. Un ticket con `CheckInIntent` activo no puede regalarse ni listarse.
+12. Cancelar un listing elimina el delegate sin cambiar el owner.
